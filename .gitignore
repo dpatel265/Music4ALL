@@ -1,0 +1,17 @@
+# Secrets
+.env
+.DS_Store
+
+# Heavy Tools
+tools/flutter_sdk/
+
+# Dart/Flutter
+.dart_tool/
+.packages
+build/
+.pub-cache/
+.pub/
+
+# IDEs
+.idea/
+.vscode/
