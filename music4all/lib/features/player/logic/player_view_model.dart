@@ -7,31 +7,37 @@ import '../../../core/services/audio_handler_service.dart';
 
 // States
 abstract class PlayerState {}
+
 class PlayerInitial extends PlayerState {}
+
 class PlayerLoading extends PlayerState {}
+
 class PlayerPlaying extends PlayerState {
   final TrackModel track;
   PlayerPlaying(this.track);
 }
+
 class PlayerError extends PlayerState {
   final String message;
   PlayerError(this.message);
 }
 
-// Logic
-class PlayerViewModel extends StateNotifier<PlayerState> {
-  final YoutubeRepository _repository;
-  final AudioHandlerService _audioHandler;
-  final LibraryViewModel _libraryViewModel;
+// Logic - migrated to Notifier for Riverpod 3.x
+class PlayerViewModel extends Notifier<PlayerState> {
+  YoutubeRepository get _repository => ref.read(youtubeRepositoryProvider);
+  AudioHandlerService get _audioHandler => ref.read(audioHandlerProvider);
+  LibraryViewModel get _libraryViewModel =>
+      ref.read(libraryViewModelProvider.notifier);
 
-  PlayerViewModel(this._repository, this._audioHandler, this._libraryViewModel) : super(PlayerInitial());
+  @override
+  PlayerState build() => PlayerInitial();
 
   Future<void> loadAndPlay(TrackModel track) async {
     state = PlayerLoading();
     try {
       // 1. Extract Stream URL
       final streamUrl = await _repository.getAudioStreamUrl(track.id);
-      
+
       // 2. Play via AudioHandler
       await _audioHandler.playUrl(
         streamUrl,
@@ -52,14 +58,13 @@ class PlayerViewModel extends StateNotifier<PlayerState> {
   void toggleFavorite(TrackModel track) {
     _libraryViewModel.toggleFavorite(track);
   }
-  
+
   bool isFavorite(String id) => _libraryViewModel.isFavorite(id);
 }
 
 // Provider
-final playerViewModelProvider = StateNotifierProvider<PlayerViewModel, PlayerState>((ref) {
-  final repo = ref.watch(youtubeRepositoryProvider);
-  final handler = ref.watch(audioHandlerProvider);
-  final library = ref.watch(libraryViewModelProvider.notifier); // Access logic
-  return PlayerViewModel(repo, handler, library);
-});
+final playerViewModelProvider = NotifierProvider<PlayerViewModel, PlayerState>(
+  () {
+    return PlayerViewModel();
+  },
+);

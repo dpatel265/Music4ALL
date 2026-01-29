@@ -1,26 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/youtube_repository.dart';
-import '../../domain/track_model.dart';
+import '../data/youtube_repository.dart';
+import '../domain/track_model.dart';
 import '../../../core/providers.dart';
 
 // State classes
 abstract class SearchState {}
+
 class SearchInitial extends SearchState {}
+
 class SearchLoading extends SearchState {}
+
 class SearchLoaded extends SearchState {
   final List<TrackModel> tracks;
   SearchLoaded(this.tracks);
 }
+
 class SearchError extends SearchState {
   final String message;
   SearchError(this.message);
 }
 
-// Controller
-class SearchViewModel extends StateNotifier<SearchState> {
-  final YoutubeRepository _repository;
+// Controller - migrated to Notifier for Riverpod 3.x
+class SearchViewModel extends Notifier<SearchState> {
+  @override
+  SearchState build() => SearchInitial();
 
-  SearchViewModel(this._repository) : super(SearchInitial());
+  YoutubeRepository get _repository => ref.read(youtubeRepositoryProvider);
 
   Future<void> search(String query) async {
     if (query.isEmpty) return;
@@ -36,7 +41,8 @@ class SearchViewModel extends StateNotifier<SearchState> {
 }
 
 // Provider
-final searchViewModelProvider = StateNotifierProvider<SearchViewModel, SearchState>((ref) {
-  final repository = ref.watch(youtubeRepositoryProvider);
-  return SearchViewModel(repository);
-});
+final searchViewModelProvider = NotifierProvider<SearchViewModel, SearchState>(
+  () {
+    return SearchViewModel();
+  },
+);

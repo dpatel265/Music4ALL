@@ -6,15 +6,20 @@ import '../../../core/services/storage_service.dart';
 class LibraryState {
   final List<TrackModel> favorites;
   final List<TrackModel> history;
-  
+
   LibraryState({this.favorites = const [], this.history = const []});
 }
 
-class LibraryViewModel extends StateNotifier<LibraryState> {
-  final StorageService _storageService;
+// Migrated to Notifier for Riverpod 3.x
+class LibraryViewModel extends Notifier<LibraryState> {
+  StorageService get _storageService => ref.read(storageServiceProvider);
 
-  LibraryViewModel(this._storageService) : super(LibraryState()) {
-    _loadLibrary();
+  @override
+  LibraryState build() {
+    return LibraryState(
+      favorites: _storageService.getFavorites(),
+      history: _storageService.getHistory(),
+    );
   }
 
   void _loadLibrary() {
@@ -33,12 +38,12 @@ class LibraryViewModel extends StateNotifier<LibraryState> {
     await _storageService.addToHistory(track);
     _loadLibrary();
   }
-  
+
   bool isFavorite(String id) => _storageService.isFavorite(id);
 }
 
 // Provider
-final libraryViewModelProvider = StateNotifierProvider<LibraryViewModel, LibraryState>((ref) {
-  final storage = ref.watch(storageServiceProvider);
-  return LibraryViewModel(storage);
-});
+final libraryViewModelProvider =
+    NotifierProvider<LibraryViewModel, LibraryState>(() {
+      return LibraryViewModel();
+    });

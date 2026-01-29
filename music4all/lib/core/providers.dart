@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import '../../features/search/data/youtube_api_client.dart';
-import '../../features/search/data/youtube_repository.dart';
-import '../../core/services/audio_handler_service.dart';
-import '../../core/services/storage_service.dart';
+import '../features/search/data/youtube_api_client.dart';
+import '../features/search/data/youtube_repository.dart';
+import 'services/audio_handler_service.dart';
+import 'services/storage_service.dart';
 
 // --- Core Services ---
 

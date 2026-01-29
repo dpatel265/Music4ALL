@@ -1,37 +1,64 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:audio_session/audio_session.dart';
 
 /// The central audio handler that manages playback and system controls (lock screen, notification).
 class AudioHandlerService extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
 
+  late final Future<void> _sessionFuture;
+
   AudioHandlerService() {
+    _sessionFuture = _initAudioSession();
+
     // Relay playback events from just_audio to audio_service
     _player.playbackEventStream.listen(_broadcastState);
-    
+
     // Relay processing state (buffering, loading, etc)
     _player.processingStateStream.listen((state) {
-       // logic to update playback state
-       _broadcastState(_player.playbackEvent);
+      // logic to update playback state
+      _broadcastState(_player.playbackEvent);
     });
   }
 
-  Future<void> playUrl(String url, String title, String artist, String artUri) async {
+  Future<void> _initAudioSession() async {
+    final session = await AudioSession.instance;
+    await session.configure(const AudioSessionConfiguration.music());
+  }
+
+  Future<void> playUrl(
+    String url,
+    String title,
+    String artist,
+    String artUri,
+  ) async {
+    await _sessionFuture; // Ensure session is configured
+
     // 1. Set media item for display
-    mediaItem.add(MediaItem(
-      id: url,
-      album: "Music4All",
-      title: title,
-      artist: artist,
-      artUri: Uri.parse(artUri),
-    ));
+    mediaItem.add(
+      MediaItem(
+        id: url,
+        album: "Music4All",
+        title: title,
+        artist: artist,
+        artUri: Uri.parse(artUri),
+      ),
+    );
 
     // 2. Load audio source
     try {
-      await _player.setUrl(url);
+      print("Attempting to play URL: $url");
+      await _player.setUrl(
+        url,
+        headers: {
+          'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        },
+      );
       play();
     } catch (e) {
       print("Error loading audio: $e");
+      throw Exception("Audio Error: $e");
     }
   }
 
@@ -52,31 +79,33 @@ class AudioHandlerService extends BaseAudioHandler with SeekHandler {
     final playing = _player.playing;
     final queueIndex = event.currentIndex;
 
-    playbackState.add(playbackState.value.copyWith(
-      controls: [
-        MediaControl.rewind,
-        if (playing) MediaControl.pause else MediaControl.play,
-        MediaControl.stop,
-        MediaControl.fastForward,
-      ],
-      systemActions: const {
-        MediaAction.seek,
-        MediaAction.seekForward,
-        MediaAction.seekBackward,
-      },
-      androidCompactActionIndices: const [0, 1, 3],
-      processingState: const {
-        ProcessingState.idle: AudioProcessingState.idle,
-        ProcessingState.loading: AudioProcessingState.loading,
-        ProcessingState.buffering: AudioProcessingState.buffering,
-        ProcessingState.ready: AudioProcessingState.ready,
-        ProcessingState.completed: AudioProcessingState.completed,
-      }[_player.processingState]!,
-      playing: playing,
-      updatePosition: _player.position,
-      bufferedPosition: _player.bufferedPosition,
-      speed: _player.speed,
-      queueIndex: queueIndex,
-    ));
+    playbackState.add(
+      playbackState.value.copyWith(
+        controls: [
+          MediaControl.rewind,
+          if (playing) MediaControl.pause else MediaControl.play,
+          MediaControl.stop,
+          MediaControl.fastForward,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        androidCompactActionIndices: const [0, 1, 3],
+        processingState: const {
+          ProcessingState.idle: AudioProcessingState.idle,
+          ProcessingState.loading: AudioProcessingState.loading,
+          ProcessingState.buffering: AudioProcessingState.buffering,
+          ProcessingState.ready: AudioProcessingState.ready,
+          ProcessingState.completed: AudioProcessingState.completed,
+        }[_player.processingState]!,
+        playing: playing,
+        updatePosition: _player.position,
+        bufferedPosition: _player.bufferedPosition,
+        speed: _player.speed,
+        queueIndex: queueIndex,
+      ),
+    );
   }
 }

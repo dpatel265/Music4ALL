@@ -5,28 +5,60 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'navigation/app_router.dart';
 import 'features/search/domain/track_model.dart';
 import 'core/services/storage_service.dart';
+import 'core/providers.dart';
 
 void main() async {
+  // Ensure binding is initialized first
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  
-  // Hive Initialization
-  await Hive.initFlutter();
-  Hive.registerAdapter(TrackModelAdapter());
-  
-  // Initialize Storage Service (Open Boxes)
-  final storageService = StorageService();
-  await storageService.init();
+
+  // Safe initialization block
+  final storageService = await _safeInit();
 
   runApp(
     ProviderScope(
       overrides: [
-        // Override the provider with the initialized instance
-        storageServiceProvider.overrideWithValue(storageService),
+        if (storageService != null)
+          storageServiceProvider.overrideWithValue(storageService),
       ],
       child: const MusicApp(),
     ),
   );
+}
+
+Future<StorageService?> _safeInit() async {
+  StorageService? storageService;
+
+  try {
+    // 1. Load .env (Optional - fail gracefully)
+    try {
+      await dotenv.load(fileName: ".env");
+      debugPrint("✅ .env loaded");
+    } catch (e) {
+      debugPrint("⚠️ Failed to load .env (continuing): $e");
+    }
+
+    // 2. Initialize HIve
+    try {
+      await Hive.initFlutter();
+      Hive.registerAdapter(TrackModelAdapter());
+      debugPrint("✅ Hive initialized");
+    } catch (e) {
+      debugPrint("❌ Hive Init Failed: $e");
+    }
+
+    // 3. Initialize Storage
+    try {
+      storageService = StorageService();
+      await storageService.init();
+      debugPrint("✅ Storage Service initialized");
+    } catch (e) {
+      debugPrint("❌ Storage Init Failed: $e");
+    }
+  } catch (e, stack) {
+    debugPrint("🔥 CRITICAL INIT ERROR: $e\n$stack");
+  }
+
+  return storageService;
 }
 
 class MusicApp extends StatelessWidget {
@@ -37,7 +69,10 @@ class MusicApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Music4All',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.dark,
+        ),
         useMaterial3: true,
       ),
       routerConfig: AppRouter.router,
