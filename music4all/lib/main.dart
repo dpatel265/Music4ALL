@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:audio_service/audio_service.dart';
 import 'navigation/app_router.dart';
 import 'features/search/domain/track_model.dart';
+import 'features/playlists/domain/user_playlist_model.dart';
 import 'core/models/track_metadata.dart';
 import 'core/models/playback_context.dart';
 import 'core/services/storage_service.dart';
@@ -48,7 +49,7 @@ Future<_InitResult> _safeInit() async {
       await dotenv.load(fileName: ".env");
       debugPrint("✅ .env loaded");
     } catch (e) {
-      debugPrint("⚠️ Failed to load .env (continuing): $e");
+      debugPrint("⚠️ .env not found: $e");
     }
 
     // 2. Initialize Hive
@@ -57,6 +58,7 @@ Future<_InitResult> _safeInit() async {
       Hive.registerAdapter(TrackModelAdapter());
       Hive.registerAdapter(TrackMetadataAdapter());
       Hive.registerAdapter(PlaybackContextAdapter());
+      Hive.registerAdapter(UserPlaylistAdapter());
       debugPrint("✅ Hive initialized");
     } catch (e) {
       debugPrint("❌ Hive Init Failed: $e");

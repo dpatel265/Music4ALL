@@ -5,7 +5,9 @@ import '../../../../core/providers.dart';
 import 'library_view_model.dart'; // Import ViewModel
 import '../domain/local_track_model.dart';
 import '../../search/domain/track_model.dart';
-import '../../search/presentation/search_view_model.dart'; // For queueing/playing?
+
+import '../../playlists/domain/user_playlist_model.dart';
+import '../../playlists/presentation/widgets/create_playlist_dialog.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
@@ -35,27 +37,177 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final libraryState = ref.watch(libraryViewModelProvider);
 
     return DefaultTabController(
-      length: 3,
+      length: 4, // Increased to 4
       child: Scaffold(
+        backgroundColor: const Color(0xFF111318),
         appBar: AppBar(
-          title: const Text('Your Library'),
+          backgroundColor: const Color(0xFF111318),
+          title: const Text(
+            'Your Library',
+            style: TextStyle(color: Colors.white),
+          ),
           bottom: const TabBar(
+            isScrollable: true,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.grey,
             tabs: [
+              Tab(icon: Icon(Icons.playlist_play), text: 'Playlists'),
               Tab(icon: Icon(Icons.favorite), text: 'Favorites'),
               Tab(icon: Icon(Icons.history), text: 'History'),
               Tab(icon: Icon(Icons.folder), text: 'Local'),
             ],
             indicatorColor: Color(0xFF256af4),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add, color: Colors.white),
+              onPressed: () async {
+                final result = await showDialog<Map<String, String>>(
+                  context: context,
+                  builder: (context) => const CreatePlaylistDialog(),
+                );
+
+                if (result != null) {
+                  await ref
+                      .read(libraryViewModelProvider.notifier)
+                      .createPlaylist(result['name']!, result['description']);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Playlist "${result['name']}" created'),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
         ),
         body: TabBarView(
           children: [
+            _buildPlaylistsList(libraryState.playlists),
             _buildTrackList(libraryState.favorites, isFavorite: true),
             _buildTrackList(libraryState.history),
             _buildLocalList(localTracks),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPlaylistsList(List<UserPlaylist> playlists) {
+    if (playlists.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.playlist_add, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              'No Playlists Yet',
+              style: TextStyle(color: Colors.white70, fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                final result = await showDialog<Map<String, String>>(
+                  context: context,
+                  builder: (context) => const CreatePlaylistDialog(),
+                );
+                if (result != null) {
+                  await ref
+                      .read(libraryViewModelProvider.notifier)
+                      .createPlaylist(result['name']!, result['description']);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('CREATE PLAYLIST'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: playlists.length,
+      itemBuilder: (context, index) {
+        final playlist = playlists[index];
+        return ListTile(
+          leading: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: BorderRadius.circular(4),
+              image: playlist.coverImageUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(playlist.coverImageUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: playlist.coverImageUrl == null
+                ? const Icon(Icons.music_note, color: Colors.white)
+                : null,
+          ),
+          title: Text(
+            playlist.name,
+            style: const TextStyle(color: Colors.white),
+          ),
+          subtitle: Text(
+            '${playlist.trackIds.length} tracks',
+            style: const TextStyle(color: Colors.grey),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.grey),
+            onPressed: () async {
+              // Confirm delete
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: const Color(0xFF1e2024),
+                  title: const Text(
+                    'Delete Playlist',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  content: Text(
+                    'Are you sure you want to delete "${playlist.name}"?',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text(
+                        'CANCEL',
+                        style: TextStyle(color: Colors.white60),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text(
+                        'DELETE',
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                await ref
+                    .read(libraryViewModelProvider.notifier)
+                    .deletePlaylist(playlist.id);
+              }
+            },
+          ),
+          onTap: () {
+            context.push('/playlist/${playlist.id}');
+          },
+        );
+      },
     );
   }
 

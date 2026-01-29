@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../search/domain/track_model.dart';
-import '../../search/data/youtube_repository.dart';
 import '../../../core/providers.dart';
 
 abstract class ChartsState {}

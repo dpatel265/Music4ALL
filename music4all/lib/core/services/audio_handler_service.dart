@@ -23,14 +23,13 @@ class AudioHandlerService extends BaseAudioHandler with SeekHandler {
 
     // Sync Queue and MediaItem
     _player.sequenceStateStream.listen((sequenceState) {
-      final sequence = sequenceState?.effectiveSequence;
-      if (sequence != null) {
-        final newQueue = sequence
-            .map((source) => source.tag as MediaItem)
-            .toList();
-        queue.add(newQueue);
-      }
-      final currentItem = sequenceState?.currentSource?.tag as MediaItem?;
+      final sequence = sequenceState.effectiveSequence;
+      final newQueue = sequence
+          .map((source) => source.tag as MediaItem)
+          .toList();
+      queue.add(newQueue);
+
+      final currentItem = sequenceState.currentSource?.tag as MediaItem?;
       if (currentItem != null) {
         mediaItem.add(currentItem);
       }

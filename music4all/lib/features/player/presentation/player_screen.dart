@@ -9,6 +9,7 @@ import 'widgets/seek_bar.dart';
 import '../../queue/presentation/queue_screen.dart';
 import '../../library/presentation/library_view_model.dart';
 import '../../search/presentation/search_view_model.dart';
+import '../../playlists/presentation/widgets/add_to_playlist_sheet.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   final TrackModel? track; // Passed from navigation
@@ -224,6 +225,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         IconButton(
           icon: const Icon(Icons.playlist_add, color: Colors.white),
           iconSize: 28,
+          tooltip: 'Add to Queue',
           onPressed: () {
             ref.read(searchViewModelProvider.notifier).addToQueue(track);
             ScaffoldMessenger.of(context).showSnackBar(
@@ -231,6 +233,20 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 content: Text('Added to Queue'),
                 duration: Duration(seconds: 1),
               ),
+            );
+          },
+        ),
+        const SizedBox(width: 32),
+        IconButton(
+          icon: const Icon(Icons.playlist_add_check, color: Colors.white),
+          iconSize: 28,
+          tooltip: 'Add to Playlist',
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (context) => AddToPlaylistSheet(trackId: track.id),
             );
           },
         ),

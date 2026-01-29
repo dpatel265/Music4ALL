@@ -1,19 +1,25 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../features/search/domain/track_model.dart';
+import '../../features/playlists/domain/user_playlist_model.dart';
 import '../models/track_metadata.dart';
 import '../models/playback_context.dart';
+import 'package:uuid/uuid.dart';
 
 class StorageService {
   late Box<TrackModel> _favoritesBox;
   late Box<TrackModel> _historyBox;
   late Box<TrackMetadata> _metadataBox;
   late Box<PlaybackContext> _contextBox;
+  late Box<UserPlaylist> _playlistsBox;
+
+  final _uuid = const Uuid();
 
   Future<void> init() async {
     _favoritesBox = await Hive.openBox<TrackModel>('favorites');
     _historyBox = await Hive.openBox<TrackModel>('history');
     _metadataBox = await Hive.openBox<TrackMetadata>('metadata');
     _contextBox = await Hive.openBox<PlaybackContext>('playback_context');
+    _playlistsBox = await Hive.openBox<UserPlaylist>('user_playlists');
   }
 
   // --- Favorites ---
@@ -89,5 +95,95 @@ class StorageService {
 
   Future<void> clearPlaybackContext() async {
     await _contextBox.delete('current');
+  }
+
+  // --- Playlists ---
+  List<UserPlaylist> getPlaylists() => _playlistsBox.values.toList();
+
+  UserPlaylist? getPlaylist(String id) => _playlistsBox.get(id);
+
+  Future<UserPlaylist> createPlaylist({
+    required String name,
+    String? description,
+  }) async {
+    final playlist = UserPlaylist(
+      id: _uuid.v4(),
+      name: name,
+      description: description,
+      trackIds: [],
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    await _playlistsBox.put(playlist.id, playlist);
+    return playlist;
+  }
+
+  Future<void> updatePlaylist(UserPlaylist playlist) async {
+    await _playlistsBox.put(playlist.id, playlist);
+  }
+
+  Future<void> deletePlaylist(String id) async {
+    await _playlistsBox.delete(id);
+  }
+
+  Future<void> addTrackToPlaylist(String playlistId, String trackId) async {
+    final playlist = _playlistsBox.get(playlistId);
+    if (playlist != null) {
+      final updatedTrackIds = List<String>.from(playlist.trackIds)
+        ..add(trackId);
+      final updated = playlist.copyWith(
+        trackIds: updatedTrackIds,
+        updatedAt: DateTime.now(),
+      );
+      await _playlistsBox.put(playlistId, updated);
+    }
+  }
+
+  Future<void> removeTrackFromPlaylist(
+    String playlistId,
+    String trackId,
+  ) async {
+    final playlist = _playlistsBox.get(playlistId);
+    if (playlist != null) {
+      final updatedTrackIds = List<String>.from(playlist.trackIds)
+        ..remove(trackId);
+      final updated = playlist.copyWith(
+        trackIds: updatedTrackIds,
+        updatedAt: DateTime.now(),
+      );
+      await _playlistsBox.put(playlistId, updated);
+    }
+  }
+
+  Future<void> reorderPlaylist(
+    String playlistId,
+    int oldIndex,
+    int newIndex,
+  ) async {
+    final playlist = _playlistsBox.get(playlistId);
+    if (playlist != null) {
+      final trackIds = List<String>.from(playlist.trackIds);
+      final item = trackIds.removeAt(oldIndex);
+      trackIds.insert(newIndex, item);
+
+      final updated = playlist.copyWith(
+        trackIds: trackIds,
+        updatedAt: DateTime.now(),
+      );
+      await _playlistsBox.put(playlistId, updated);
+    }
+  }
+
+  // Get tracks for a playlist
+  List<TrackModel> getPlaylistTracks(String playlistId) {
+    final playlist = _playlistsBox.get(playlistId);
+    if (playlist == null) return [];
+
+    final tracks = <TrackModel>[];
+    for (final trackId in playlist.trackIds) {
+      final track = _historyBox.get(trackId) ?? _favoritesBox.get(trackId);
+      if (track != null) tracks.add(track);
+    }
+    return tracks;
   }
 }

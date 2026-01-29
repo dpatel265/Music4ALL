@@ -63,6 +63,7 @@ class YoutubeApiClient {
     }
   }
 
+  /// Fetches playlists/albums
   Future<List<dynamic>> searchPlaylists(String query) async {
     final apiKey = dotenv.env['GOOGLE_API_KEY'];
     if (apiKey == null) throw Exception('API Key not found');
@@ -83,6 +84,34 @@ class YoutubeApiClient {
         return response.data['items'];
       } else {
         throw Exception('Failed to load playlists: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Network Error: $e');
+    }
+  }
+
+  /// Fetches tracks from a playlist/album
+  Future<List<dynamic>> getPlaylistItems(String playlistId) async {
+    final apiKey = dotenv.env['GOOGLE_API_KEY'];
+    if (apiKey == null) throw Exception('API Key not found');
+
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/playlistItems',
+        queryParameters: {
+          'part': 'snippet,contentDetails',
+          'playlistId': playlistId,
+          'maxResults': 50,
+          'key': apiKey,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return response.data['items'];
+      } else {
+        throw Exception(
+          'Failed to load playlist items: ${response.statusCode}',
+        );
       }
     } catch (e) {
       throw Exception('Network Error: $e');

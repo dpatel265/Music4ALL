@@ -31,6 +31,16 @@ class YoutubeRepository {
     return items; // Return raw data for now, can map to PlaylistModel later
   }
 
+  /// Fetches tracks from an album/playlist
+  Future<List<TrackModel>> getAlbumTracks(String playlistId) async {
+    final items = await _apiClient.getPlaylistItems(playlistId);
+    return items.map((item) {
+      final videoId = item['contentDetails']['videoId'];
+      final snippet = item['snippet'];
+      return TrackModel.fromApi(snippet, videoId);
+    }).toList();
+  }
+
   /// Fetches trending music videos (Charts)
   Future<List<TrackModel>> getTrendingTracks() async {
     final items = await _apiClient.getPopularVideos();

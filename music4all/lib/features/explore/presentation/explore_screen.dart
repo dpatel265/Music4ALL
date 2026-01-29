@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../playlists/domain/playlist_model.dart';
 import 'widgets/explore_widgets.dart';
 import 'explore_provider.dart';
 
@@ -59,7 +60,14 @@ class ExploreScreen extends ConsumerWidget {
                         ),
                         style: const TextStyle(color: Colors.white),
                         onSubmitted: (query) {
-                          // TODO: Navigate to search results with this query
+                          if (query.isNotEmpty) {
+                            context.push(
+                              Uri(
+                                path: '/search',
+                                queryParameters: {'q': query},
+                              ).toString(),
+                            );
+                          }
                         },
                       ),
                     ),
@@ -241,10 +249,15 @@ class ExploreScreen extends ConsumerWidget {
 
                           return GestureDetector(
                             onTap: () {
-                              // TODO: Navigate to album detail screen
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Album: $title')),
+                              // Navigate to album detail screen
+                              final albumModel = PlaylistModel(
+                                id: playlistId,
+                                title: title,
+                                description: snippet['description'] ?? '',
+                                thumbnailUrl: thumbnailUrl,
+                                channelTitle: channelTitle,
                               );
+                              context.push('/album', extra: albumModel);
                             },
                             child: Container(
                               width: 160,

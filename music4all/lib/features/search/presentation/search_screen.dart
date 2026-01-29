@@ -4,14 +4,26 @@ import 'package:go_router/go_router.dart';
 import 'search_view_model.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
-  const SearchScreen({super.key});
+  final String? initialQuery;
+
+  const SearchScreen({super.key, this.initialQuery});
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
-  final _searchController = TextEditingController();
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(text: widget.initialQuery);
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      // Defer the search to after the build
+      Future.microtask(() => _performSearch());
+    }
+  }
 
   @override
   void dispose() {

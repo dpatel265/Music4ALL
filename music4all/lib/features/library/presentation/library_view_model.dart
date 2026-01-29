@@ -2,12 +2,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../search/domain/track_model.dart';
 import '../../../core/providers.dart';
 import '../../../core/services/storage_service.dart';
+import '../../playlists/domain/user_playlist_model.dart';
 
 class LibraryState {
   final List<TrackModel> favorites;
   final List<TrackModel> history;
+  final List<UserPlaylist> playlists;
 
-  LibraryState({this.favorites = const [], this.history = const []});
+  LibraryState({
+    this.favorites = const [],
+    this.history = const [],
+    this.playlists = const [],
+  });
 }
 
 // Migrated to Notifier for Riverpod 3.x
@@ -16,27 +22,39 @@ class LibraryViewModel extends Notifier<LibraryState> {
 
   @override
   LibraryState build() {
+    return _loadState();
+  }
+
+  LibraryState _loadState() {
     return LibraryState(
       favorites: _storageService.getFavorites(),
       history: _storageService.getHistory(),
+      playlists: _storageService.getPlaylists(),
     );
   }
 
-  void _loadLibrary() {
-    state = LibraryState(
-      favorites: _storageService.getFavorites(),
-      history: _storageService.getHistory(),
-    );
+  void refresh() {
+    state = _loadState();
   }
 
   Future<void> toggleFavorite(TrackModel track) async {
     await _storageService.toggleFavorite(track);
-    _loadLibrary(); // Reload state
+    refresh(); // Reload state
   }
 
   Future<void> addToHistory(TrackModel track) async {
     await _storageService.addToHistory(track);
-    _loadLibrary();
+    refresh();
+  }
+
+  Future<void> createPlaylist(String name, String? description) async {
+    await _storageService.createPlaylist(name: name, description: description);
+    refresh();
+  }
+
+  Future<void> deletePlaylist(String id) async {
+    await _storageService.deletePlaylist(id);
+    refresh();
   }
 
   bool isFavorite(String id) => _storageService.isFavorite(id);

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'charts_view_model.dart';
 import '../../search/domain/track_model.dart';
-import '../../../core/providers.dart';
 import '../../player/logic/player_view_model.dart';
 
 class ChartsScreen extends ConsumerWidget {

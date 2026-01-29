@@ -7,7 +7,10 @@ import '../features/library/presentation/library_screen.dart';
 import '../features/player/presentation/player_screen.dart';
 import '../features/explore/presentation/explore_screen.dart';
 import '../features/charts/presentation/charts_screen.dart';
+import '../features/albums/presentation/album_detail_screen.dart';
+import '../features/playlists/presentation/playlist_detail_screen.dart';
 import '../features/search/domain/track_model.dart';
+import '../features/playlists/domain/playlist_model.dart';
 
 class AppRouter {
   // Navigator Keys needed for ShellRoute to work independently
@@ -27,7 +30,10 @@ class AppRouter {
           GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
           GoRoute(
             path: '/search',
-            builder: (context, state) => const SearchScreen(),
+            builder: (context, state) {
+              final query = state.uri.queryParameters['q'];
+              return SearchScreen(initialQuery: query);
+            },
           ),
           GoRoute(
             path: '/explore',
@@ -54,6 +60,27 @@ class AppRouter {
             fullscreenDialog: true,
             child: PlayerScreen(track: track),
           );
+        },
+      ),
+      // Album Detail Route
+      GoRoute(
+        path: '/album',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          final album = state.extra as PlaylistModel;
+          return MaterialPage(
+            fullscreenDialog: true,
+            child: AlbumDetailScreen(album: album),
+          );
+        },
+      ),
+      // Playlist Detail Route
+      GoRoute(
+        path: '/playlist/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PlaylistDetailScreen(playlistId: id);
         },
       ),
     ],
