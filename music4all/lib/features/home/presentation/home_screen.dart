@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'home_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -129,7 +130,7 @@ class HomeScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF4c1d95), Color(0xFF7c2d12)],
+            colors: [AppColors.primary, Color(0xFF9d4100)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -156,9 +157,9 @@ class HomeScreen extends ConsumerWidget {
                   const Text(
                     'Continue Listening',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.white,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -177,7 +178,7 @@ class HomeScreen extends ConsumerWidget {
                     track.artist,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white60, fontSize: 14),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ],
               ),
@@ -241,12 +242,20 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildMixes(BuildContext context, WidgetRef ref, data) {
     final mixes = [
-      {'title': 'Liked Mix', 'tracks': data.likedMix, 'color': Colors.pink},
-      {'title': 'Recent Mix', 'tracks': data.recentMix, 'color': Colors.purple},
+      {
+        'title': 'Liked Mix',
+        'tracks': data.likedMix,
+        'color': Colors.redAccent,
+      },
+      {
+        'title': 'Recent Mix',
+        'tracks': data.recentMix,
+        'color': AppColors.primary,
+      },
       {
         'title': 'Most Played',
         'tracks': data.mostPlayedMix,
-        'color': Colors.blue,
+        'color': AppColors.accent,
       },
     ];
 

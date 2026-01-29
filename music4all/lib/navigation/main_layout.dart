@@ -56,12 +56,16 @@ class MainLayout extends StatelessWidget {
                       label: 'Explore',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.trending_up),
-                      label: 'Charts',
+                      icon: Icon(Icons.search),
+                      label: 'Search',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.library_music),
                       label: 'Library',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person),
+                      label: 'Profile',
                     ),
                   ],
                 ),
@@ -74,18 +78,10 @@ class MainLayout extends StatelessWidget {
 
   static int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/explore')) {
-      return 1;
-    }
-    if (location.startsWith('/charts')) {
-      return 2;
-    }
-    if (location.startsWith('/library')) {
-      return 3;
-    }
-    if (location == '/') {
-      return 0;
-    }
+    if (location.startsWith('/explore')) return 1;
+    if (location.startsWith('/search')) return 2;
+    if (location.startsWith('/library')) return 3;
+    if (location.startsWith('/profile')) return 4;
     return 0;
   }
 
@@ -98,10 +94,13 @@ class MainLayout extends StatelessWidget {
         context.go('/explore');
         break;
       case 2:
-        context.go('/charts');
+        context.go('/search');
         break;
       case 3:
         context.go('/library');
+        break;
+      case 4:
+        context.go('/profile');
         break;
     }
   }

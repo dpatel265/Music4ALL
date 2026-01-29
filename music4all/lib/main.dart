@@ -12,6 +12,7 @@ import 'core/services/storage_service.dart';
 import 'core/services/audio_handler_service.dart';
 import 'core/providers.dart';
 import 'features/library/data/local_library_repository.dart';
+import 'features/library/domain/local_track_model.dart';
 
 void main() async {
   // Ensure binding is initialized first
@@ -59,6 +60,7 @@ Future<_InitResult> _safeInit() async {
       Hive.registerAdapter(TrackMetadataAdapter());
       Hive.registerAdapter(PlaybackContextAdapter());
       Hive.registerAdapter(UserPlaylistAdapter());
+      Hive.registerAdapter(LocalTrackAdapter());
       debugPrint("✅ Hive initialized");
     } catch (e) {
       debugPrint("❌ Hive Init Failed: $e");

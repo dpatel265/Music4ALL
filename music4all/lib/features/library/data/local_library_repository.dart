@@ -5,9 +5,7 @@ class LocalLibraryRepository {
   static const String boxName = 'local_tracks';
 
   Future<void> init() async {
-    if (!Hive.isAdapterRegistered(1)) {
-      Hive.registerAdapter(LocalTrackAdapter());
-    }
+    // Adapter now registered in main.dart
     await Hive.openBox<LocalTrack>(boxName);
   }
 

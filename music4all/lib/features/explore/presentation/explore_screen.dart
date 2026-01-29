@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../playlists/domain/playlist_model.dart';
 import 'widgets/explore_widgets.dart';
 import 'explore_provider.dart';
@@ -25,73 +26,36 @@ class ExploreScreen extends ConsumerWidget {
         data: (data) => CustomScrollView(
           slivers: [
             // Header / Top Bar
+            // Header / Top Bar
             SliverAppBar(
               backgroundColor: const Color(0xFF111318).withOpacity(0.9),
               floating: true,
               pinned: true,
               elevation: 0,
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(1.0),
-                child: Container(color: const Color(0xFF282e39), height: 1.0),
+              title: const Text(
+                'Explore',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-              title: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 600),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: const Color(0xFF282e39),
-                          hintText: 'Search songs, albums, artists',
-                          hintStyle: const TextStyle(color: Color(0xFF9ca6ba)),
-                          prefixIcon: const Icon(
-                            Icons.search,
-                            color: Color(0xFF9ca6ba),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 0,
-                            horizontal: 16,
-                          ),
-                        ),
-                        style: const TextStyle(color: Colors.white),
-                        onSubmitted: (query) {
-                          if (query.isNotEmpty) {
-                            context.push(
-                              Uri(
-                                path: '/search',
-                                queryParameters: {'q': query},
-                              ).toString(),
-                            );
-                          }
-                        },
-                      ),
-                    ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.cast),
+                  color: const Color(0xFF9ca6ba),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  color: const Color(0xFF9ca6ba),
+                  onPressed: () {},
+                ),
+                const SizedBox(width: 12),
+                const CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(
+                    'https://lh3.googleusercontent.com/aida-public/AB6AXuCEC2cE0wcyxPFIus_6pJcA5DdSeGeBx3zyZTYnRvpZWTGgfdo5oxemJB_0uqnv13DSof-ekdjl_mb5yo2mceWvSJ3RdmtqFpBAHdnVVwfSUO0sJPkfdrOt6bzILjt43xsR1CGox52Ami3YmVXx7pdPSN-Pn052FmkTh1QRORscPnkITcMojEWo9iJXPBG019wCgOPM3WjgtKCMmVKKnYsNiILyE1-CYxWS9XDdH-nhswcOkbVWd0z-v0mGTIOc6aEwfAsKCYD1SspA',
                   ),
-                  const SizedBox(width: 24),
-                  IconButton(
-                    icon: const Icon(Icons.cast),
-                    color: const Color(0xFF9ca6ba),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    color: const Color(0xFF9ca6ba),
-                    onPressed: () {},
-                  ),
-                  const SizedBox(width: 12),
-                  const CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage(
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuCEC2cE0wcyxPFIus_6pJcA5DdSeGeBx3zyZTYnRvpZWTGgfdo5oxemJB_0uqnv13DSof-ekdjl_mb5yo2mceWvSJ3RdmtqFpBAHdnVVwfSUO0sJPkfdrOt6bzILjt43xsR1CGox52Ami3YmVXx7pdPSN-Pn052FmkTh1QRORscPnkITcMojEWo9iJXPBG019wCgOPM3WjgtKCMmVKKnYsNiILyE1-CYxWS9XDdH-nhswcOkbVWd0z-v0mGTIOc6aEwfAsKCYD1SspA',
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 16),
+              ],
             ),
 
             // Scrollable Content
@@ -110,6 +74,7 @@ class ExploreScreen extends ConsumerWidget {
                             label: 'Explore',
                             icon: Icons.explore,
                             isSelected: true,
+                            activeColor: AppColors.primary,
                           ),
                           SizedBox(width: 12),
                           ExploreChip(

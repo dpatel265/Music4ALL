@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 
 /// The central audio handler that manages playback and system controls (lock screen, notification).
 class AudioHandlerService extends BaseAudioHandler with SeekHandler {
@@ -144,6 +145,25 @@ class AudioHandlerService extends BaseAudioHandler with SeekHandler {
       AudioServiceRepeatMode.group: LoopMode.all,
     }[repeatMode]!;
     await _player.setLoopMode(loopMode);
+  }
+
+  // Sleep Timer
+  Timer? _sleepTimer;
+  Future<void> scheduleSleepTimer(Duration duration) async {
+    _sleepTimer?.cancel();
+    if (duration == Duration.zero) return;
+
+    debugPrint("AudioHandler: Sleep timer set for $duration");
+    _sleepTimer = Timer(duration, () {
+      debugPrint("AudioHandler: Sleep timer triggered. Pausing.");
+      pause();
+      _sleepTimer = null;
+    });
+  }
+
+  void cancelSleepTimer() {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
   }
 
   Stream<Duration> get positionStream => _player.positionStream;

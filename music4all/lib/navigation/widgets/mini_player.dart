@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:audio_service/audio_service.dart';
 import '../../core/providers.dart';
+import '../../core/theme/app_colors.dart';
 
 /// MiniPlayer - Persistent playback surface per iOS TRD Section 4
 ///
@@ -39,15 +40,14 @@ class MiniPlayer extends ConsumerWidget {
 
             return GestureDetector(
               onTap: () {
-                // Navigate to Full Player
                 context.push('/player');
               },
               child: Container(
                 height: 64,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF1e222a),
+                  color: AppColors.surface, // Use AppColors.surface
                   border: Border(
-                    top: BorderSide(color: Color(0xFF282e39), width: 0.5),
+                    top: BorderSide(color: Colors.white12, width: 0.5),
                   ),
                 ),
                 child: Column(
@@ -56,25 +56,25 @@ class MiniPlayer extends ConsumerWidget {
                     LinearProgressIndicator(
                       value: progress.clamp(0.0, 1.0),
                       minHeight: 2,
-                      backgroundColor: const Color(0xFF282e39),
+                      backgroundColor: Colors.transparent,
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF256af4),
+                        AppColors.primary,
                       ),
                     ),
                     // Content
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           children: [
                             // Artwork
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(4),
                               child: mediaItem.artUri != null
                                   ? Image.network(
                                       mediaItem.artUri.toString(),
-                                      width: 44,
-                                      height: 44,
+                                      width: 48,
+                                      height: 48,
                                       fit: BoxFit.cover,
                                       errorBuilder:
                                           (context, error, stackTrace) =>
@@ -95,7 +95,7 @@ class MiniPlayer extends ConsumerWidget {
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontWeight: FontWeight.w500,
+                                      fontWeight: FontWeight.w600,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -104,7 +104,7 @@ class MiniPlayer extends ConsumerWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      color: Color(0xFF9ca6ba),
+                                      color: AppColors.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -124,7 +124,16 @@ class MiniPlayer extends ConsumerWidget {
                                 playing ? Icons.pause : Icons.play_arrow,
                               ),
                               color: Colors.white,
-                              iconSize: 32,
+                              iconSize: 28,
+                            ),
+                            // Skip Button
+                            IconButton(
+                              onPressed: () {
+                                audioHandler.skipToNext();
+                              },
+                              icon: const Icon(Icons.skip_next),
+                              color: Colors.white,
+                              iconSize: 28,
                             ),
                           ],
                         ),

@@ -11,6 +11,8 @@ import '../features/albums/presentation/album_detail_screen.dart';
 import '../features/playlists/presentation/playlist_detail_screen.dart';
 import '../features/search/domain/track_model.dart';
 import '../features/playlists/domain/playlist_model.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
 
 class AppRouter {
   // Navigator Keys needed for ShellRoute to work independently
@@ -47,7 +49,16 @@ class AppRouter {
             path: '/charts',
             builder: (context, state) => const ChartsScreen(),
           ),
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
+          ),
         ],
+      ),
+      GoRoute(
+        path: '/settings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SettingsScreen(),
       ),
       // Fullscreen Player Route (outside shell if we want it to cover everything,
       // or inside if we want it to be part of content. Usually full screen player covers everything)

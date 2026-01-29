@@ -14,6 +14,18 @@ class LibraryState {
     this.history = const [],
     this.playlists = const [],
   });
+
+  LibraryState copyWith({
+    List<TrackModel>? favorites,
+    List<TrackModel>? history,
+    List<UserPlaylist>? playlists,
+  }) {
+    return LibraryState(
+      favorites: favorites ?? this.favorites,
+      history: history ?? this.history,
+      playlists: playlists ?? this.playlists,
+    );
+  }
 }
 
 // Migrated to Notifier for Riverpod 3.x

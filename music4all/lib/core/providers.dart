@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../features/search/data/youtube_api_client.dart';
 import '../features/search/data/youtube_repository.dart';
 import '../features/library/data/local_library_repository.dart';
+import '../features/player/data/lyrics_repository.dart';
 import 'services/audio_handler_service.dart';
 import 'services/storage_service.dart';
 
@@ -36,4 +37,9 @@ final youtubeRepositoryProvider = Provider<YoutubeRepository>((ref) {
 
 final localLibraryRepositoryProvider = Provider<LocalLibraryRepository>((ref) {
   return LocalLibraryRepository();
+});
+
+final lyricsRepositoryProvider = Provider<LyricsRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return LyricsRepository(dio: dio);
 });
