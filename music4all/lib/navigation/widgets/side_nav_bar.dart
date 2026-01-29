@@ -64,9 +64,13 @@ class SideNavBar extends StatelessWidget {
                   _NavTile(
                     icon: Icons.explore,
                     label: 'Explore',
-                    isActive:
-                        true, // Hardcoded for this demo since we are building Explore view
+                    isActive: true,
                     onTap: () => context.go('/explore'),
+                  ),
+                  _NavTile(
+                    icon: Icons.trending_up,
+                    label: 'Charts',
+                    onTap: () => context.go('/charts'),
                   ),
                   _NavTile(
                     icon: Icons.library_music,

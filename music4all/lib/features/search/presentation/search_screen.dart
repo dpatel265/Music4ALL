@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'search_view_model.dart';
-import '../domain/track_model.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -49,7 +48,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceVariant,
+                fillColor: const Color(0xFF282e39),
               ),
               onSubmitted: (_) => _performSearch(),
               textInputAction: TextInputAction.search,
@@ -80,7 +79,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     } else if (state is SearchLoaded) {
       return ListView.separated(
         itemCount: state.tracks.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        separatorBuilder: (_, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
           final track = state.tracks[index];
           return ListTile(
@@ -91,7 +90,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 width: 50,
                 height: 50,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (context, error, stackTrace) => Container(
                   width: 50,
                   height: 50,
                   color: Colors.grey[800],
@@ -109,10 +108,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            trailing: const Icon(Icons.play_circle_outline),
+            trailing: IconButton(
+              icon: const Icon(Icons.playlist_add),
+              onPressed: () {
+                ref.read(searchViewModelProvider.notifier).addToQueue(track);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Added to Queue'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+            ),
             onTap: () {
               // Navigate to player with the selected track
-              // In a real app we'd pass the track object, but directly in GoRouter 
+              // In a real app we'd pass the track object, but directly in GoRouter
               // params is string-only usually. We can pass state via 'extra'.
               context.push('/player', extra: track);
             },

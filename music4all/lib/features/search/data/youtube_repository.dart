@@ -2,6 +2,7 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart'
     hide YoutubeApiClient;
 import '../domain/track_model.dart';
 import 'youtube_api_client.dart';
+import 'package:flutter/foundation.dart';
 
 class YoutubeRepository {
   final YoutubeApiClient _apiClient;
@@ -14,9 +15,29 @@ class YoutubeRepository {
   /// Searches for music videos using the Official API (Quota efficient)
   Future<List<TrackModel>> search(String query) async {
     final items = await _apiClient.searchVideos(query);
-    return items.map<TrackModel>((item) {
+    return items
+        .where((item) => item['id'] != null && item['id']['videoId'] != null)
+        .map<TrackModel>((item) {
+          final snippet = item['snippet'];
+          final videoId = item['id']['videoId'] as String;
+          return TrackModel.fromApi(snippet, videoId);
+        })
+        .toList();
+  }
+
+  /// Fetches playlists/albums
+  Future<List<dynamic>> searchPlaylists(String query) async {
+    final items = await _apiClient.searchPlaylists(query);
+    return items; // Return raw data for now, can map to PlaylistModel later
+  }
+
+  /// Fetches trending music videos (Charts)
+  Future<List<TrackModel>> getTrendingTracks() async {
+    final items = await _apiClient.getPopularVideos();
+    return items.where((item) => item['id'] != null).map<TrackModel>((item) {
       final snippet = item['snippet'];
-      final videoId = item['id']['videoId'];
+      // 'videos' endpoint returns ID as string directly
+      final videoId = item['id'] as String;
       return TrackModel.fromApi(snippet, videoId);
     }).toList();
   }
@@ -43,7 +64,7 @@ class YoutubeRepository {
         // For music app, we might want highest audio quality, which usually correlates with video quality.
         // Let's safe-pick highest bitrate for now to ensure it works.
         final bestStream = muxedStreams.withHighestBitrate();
-        print(
+        debugPrint(
           "Selected MUXED Stream: ${bestStream.container.name} | ${bestStream.bitrate} bps",
         );
         return bestStream.url.toString();
@@ -59,7 +80,7 @@ class YoutubeRepository {
           ? mp4Stream.withHighestBitrate()
           : audioStreams.withHighestBitrate();
 
-      print(
+      debugPrint(
         "Selected Audio-Only Stream: ${bestStream.container.name} | ${bestStream.bitrate}",
       );
       return bestStream.url.toString();

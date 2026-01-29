@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/side_nav_bar.dart';
-import 'widgets/bottom_player_bar.dart';
+import 'widgets/mini_player.dart';
 
 class MainLayout extends StatelessWidget {
   final Widget child;
@@ -31,8 +31,8 @@ class MainLayout extends StatelessWidget {
                 ),
               ),
 
-              // Bottom Player Bar (Always visible)
-              const BottomPlayerBar(),
+              // Mini Player (Persistent playback surface)
+              const MiniPlayer(),
 
               // Bottom Navigation Bar (Mobile only)
               // Note: The design had sidebar for desktop. For mobile, usually a BottomNav is used.
@@ -56,6 +56,10 @@ class MainLayout extends StatelessWidget {
                       label: 'Explore',
                     ),
                     BottomNavigationBarItem(
+                      icon: Icon(Icons.trending_up),
+                      label: 'Charts',
+                    ),
+                    BottomNavigationBarItem(
                       icon: Icon(Icons.library_music),
                       label: 'Library',
                     ),
@@ -73,8 +77,11 @@ class MainLayout extends StatelessWidget {
     if (location.startsWith('/explore')) {
       return 1;
     }
-    if (location.startsWith('/library')) {
+    if (location.startsWith('/charts')) {
       return 2;
+    }
+    if (location.startsWith('/library')) {
+      return 3;
     }
     if (location == '/') {
       return 0;
@@ -91,6 +98,9 @@ class MainLayout extends StatelessWidget {
         context.go('/explore');
         break;
       case 2:
+        context.go('/charts');
+        break;
+      case 3:
         context.go('/library');
         break;
     }

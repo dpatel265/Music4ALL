@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/youtube_repository.dart';
 import '../domain/track_model.dart';
@@ -36,6 +37,26 @@ class SearchViewModel extends Notifier<SearchState> {
       state = SearchLoaded(tracks);
     } catch (e) {
       state = SearchError(e.toString());
+    }
+  }
+
+  Future<void> addToQueue(TrackModel track) async {
+    try {
+      final streamUrl = await _repository.getAudioStreamUrl(track.id);
+      final audioHandler = ref.read(audioHandlerProvider);
+
+      final item = MediaItem(
+        id: track.id,
+        album: "Music4All",
+        title: track.title,
+        artist: track.artist,
+        artUri: Uri.parse(track.thumbnailUrl),
+      );
+
+      // Assume AudioHandlerService
+      await (audioHandler as dynamic).addToQueue(item, streamUrl);
+    } catch (e) {
+      // Ignore
     }
   }
 }

@@ -25,7 +25,7 @@ class ExploreScreen extends ConsumerWidget {
           slivers: [
             // Header / Top Bar
             SliverAppBar(
-              backgroundColor: const Color(0xFF111318).withValues(alpha: 0.9),
+              backgroundColor: const Color(0xFF111318).withOpacity(0.9),
               floating: true,
               pinned: true,
               elevation: 0,
@@ -198,6 +198,107 @@ class ExploreScreen extends ConsumerWidget {
                           },
                         );
                       },
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Recommended Albums Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Recommended Albums',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'SEE ALL',
+                            style: TextStyle(color: Color(0xFF9ca6ba)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    SizedBox(
+                      height: 220,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: data.recommendedAlbums.length,
+                        itemBuilder: (context, index) {
+                          final album = data.recommendedAlbums[index];
+                          final snippet = album['snippet'];
+                          final playlistId = album['id']['playlistId'];
+                          final title = snippet['title'] ?? 'Unknown Album';
+                          final thumbnailUrl =
+                              snippet['thumbnails']?['medium']?['url'] ?? '';
+                          final channelTitle =
+                              snippet['channelTitle'] ?? 'Unknown Artist';
+
+                          return GestureDetector(
+                            onTap: () {
+                              // TODO: Navigate to album detail screen
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Album: $title')),
+                              );
+                            },
+                            child: Container(
+                              width: 160,
+                              margin: const EdgeInsets.only(right: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: thumbnailUrl.isNotEmpty
+                                        ? Image.network(
+                                            thumbnailUrl,
+                                            width: 160,
+                                            height: 160,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Container(
+                                            width: 160,
+                                            height: 160,
+                                            color: Colors.grey[800],
+                                            child: const Icon(
+                                              Icons.album,
+                                              color: Colors.white,
+                                              size: 48,
+                                            ),
+                                          ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    channelTitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF9ca6ba),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(height: 32),
 

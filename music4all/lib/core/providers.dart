@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../features/search/data/youtube_api_client.dart';
 import '../features/search/data/youtube_repository.dart';
+import '../features/library/data/local_library_repository.dart';
 import 'services/audio_handler_service.dart';
 import 'services/storage_service.dart';
 
@@ -31,4 +32,8 @@ final youtubeApiClientProvider = Provider<YoutubeApiClient>((ref) {
 final youtubeRepositoryProvider = Provider<YoutubeRepository>((ref) {
   final client = ref.watch(youtubeApiClientProvider);
   return YoutubeRepository(apiClient: client);
+});
+
+final localLibraryRepositoryProvider = Provider<LocalLibraryRepository>((ref) {
+  return LocalLibraryRepository();
 });

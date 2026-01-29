@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../search/domain/track_model.dart';
 import '../../search/data/youtube_repository.dart';
@@ -36,15 +37,25 @@ class PlayerViewModel extends Notifier<PlayerState> {
     state = PlayerLoading();
     try {
       // 1. Extract Stream URL
-      final streamUrl = await _repository.getAudioStreamUrl(track.id);
+      String streamUrl;
+      if (track.audioUrl != null && track.audioUrl!.isNotEmpty) {
+        // Local file or direct URL
+        streamUrl = track.audioUrl!;
+      } else {
+        // Fetch from YouTube
+        streamUrl = await _repository.getAudioStreamUrl(track.id);
+      }
 
       // 2. Play via AudioHandler
-      await _audioHandler.playUrl(
-        streamUrl,
-        track.title,
-        track.artist,
-        track.thumbnailUrl,
+      final mediaItem = MediaItem(
+        id: track.id,
+        album: "Music4All",
+        title: track.title,
+        artist: track.artist,
+        artUri: Uri.parse(track.thumbnailUrl),
       );
+
+      await _audioHandler.playTrack(mediaItem, streamUrl);
 
       // 3. Add to History
       await _libraryViewModel.addToHistory(track);

@@ -5,6 +5,7 @@ import '../features/search/presentation/search_screen.dart';
 import '../features/library/presentation/library_screen.dart';
 import '../features/player/presentation/player_screen.dart';
 import '../features/explore/presentation/explore_screen.dart';
+import '../features/charts/presentation/charts_screen.dart';
 import '../features/search/domain/track_model.dart';
 
 class AppRouter {
@@ -32,6 +33,10 @@ class AppRouter {
             path: '/library',
             builder: (context, state) => const LibraryScreen(),
           ),
+          GoRoute(
+            path: '/charts',
+            builder: (context, state) => const ChartsScreen(),
+          ),
         ],
       ),
       // Fullscreen Player Route (outside shell if we want it to cover everything,
@@ -39,9 +44,12 @@ class AppRouter {
       GoRoute(
         path: '/player',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final track = state.extra as TrackModel?;
-          return PlayerScreen(track: track);
+          return MaterialPage(
+            fullscreenDialog: true,
+            child: PlayerScreen(track: track),
+          );
         },
       ),
     ],
