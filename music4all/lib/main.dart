@@ -5,6 +5,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:audio_service/audio_service.dart';
 import 'navigation/app_router.dart';
 import 'features/search/domain/track_model.dart';
+import 'core/models/track_metadata.dart';
+import 'core/models/playback_context.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/audio_handler_service.dart';
 import 'core/providers.dart';
@@ -53,6 +55,8 @@ Future<_InitResult> _safeInit() async {
     try {
       await Hive.initFlutter();
       Hive.registerAdapter(TrackModelAdapter());
+      Hive.registerAdapter(TrackMetadataAdapter());
+      Hive.registerAdapter(PlaybackContextAdapter());
       debugPrint("✅ Hive initialized");
     } catch (e) {
       debugPrint("❌ Hive Init Failed: $e");

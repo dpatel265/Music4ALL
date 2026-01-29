@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'main_layout.dart';
+import '../features/home/presentation/home_screen.dart';
 import '../features/search/presentation/search_screen.dart';
 import '../features/library/presentation/library_screen.dart';
 import '../features/player/presentation/player_screen.dart';
@@ -15,8 +16,7 @@ class AppRouter {
 
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation:
-        '/explore', // Changed to Explore as per user request context
+    initialLocation: '/', // Home is now the default
     routes: [
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -24,7 +24,11 @@ class AppRouter {
           return MainLayout(child: child);
         },
         routes: [
-          GoRoute(path: '/', builder: (context, state) => const SearchScreen()),
+          GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+          GoRoute(
+            path: '/search',
+            builder: (context, state) => const SearchScreen(),
+          ),
           GoRoute(
             path: '/explore',
             builder: (context, state) => const ExploreScreen(),
