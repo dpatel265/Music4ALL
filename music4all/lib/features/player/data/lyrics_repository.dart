@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../player/domain/lyric_line.dart';
+import '../logic/lyrics_parser.dart';
 
 class LyricsRepository {
   final Dio _dio;
@@ -43,37 +44,24 @@ class LyricsRepository {
 
   List<LyricLine> _parseSyncedLyrics(String syncedLyrics) {
     final List<LyricLine> lines = [];
-    final RegExp regex = RegExp(r'^\[(\d{2}):(\d{2})\.(\d{2})\](.*)$');
 
-    // Example Line: [00:12.34]Lyric text here
     for (final line in syncedLyrics.split('\n')) {
-      final match = regex.firstMatch(line);
-      if (match != null) {
-        final minutes = int.parse(match.group(1)!);
-        final seconds = int.parse(match.group(2)!);
-        final hundredths = int.parse(match.group(3)!);
-        final text = match.group(4)!.trim();
+      final richLine = LyricsParser.parseRichSyncLine(line);
+      if (richLine != null) {
+        // Construct standard LyricLine from first word's timestamp
+        // For now, we flatten rich sync to line-sync as the UI currently supports line-sync.
+        // Future todo: Update UI to support word-level highlighting using richLine.words
 
-        if (text.isNotEmpty) {
-          final offset = Duration(
-            minutes: minutes,
-            seconds: seconds,
-            milliseconds: hundredths * 10,
-          );
+        // Reconstruct text from words
+        final text = richLine.words.map((w) => w.text).join(' ');
 
-          // Estimate duration until next line (handled by UI or VM usually,
-          // but we need to populate the field).
-          // For now, set duration to 0 or a default, and we can fix up later if needed.
-          // Or we can post-process.
-
-          lines.add(
-            LyricLine(
-              text: text,
-              offset: offset,
-              duration: const Duration(seconds: 3), // Default duration
-            ),
-          );
-        }
+        lines.add(
+          LyricLine(
+            text: text,
+            offset: richLine.lineStartTime,
+            duration: const Duration(seconds: 3), // Default, fixed below
+          ),
+        );
       }
     }
 
