@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../playlists/presentation/widgets/track_options_sheet.dart';
 import 'search_view_model.dart';
 
@@ -109,8 +110,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       );
     } else if (state is SearchLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
+      return const SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: SongListSkeleton(itemCount: 10),
+        ),
       );
     } else if (state is SearchError) {
       return Center(

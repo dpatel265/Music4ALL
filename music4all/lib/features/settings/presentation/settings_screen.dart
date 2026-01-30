@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/toast_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -65,15 +66,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               try {
                 await DefaultCacheManager().emptyCache();
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cache cleared successfully')),
+                  ToastService.showSuccess(
+                    context,
+                    'Cache cleared successfully',
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to clear cache: $e')),
-                  );
+                  ToastService.showError(context, 'Failed to clear cache: $e');
                 }
               }
             },

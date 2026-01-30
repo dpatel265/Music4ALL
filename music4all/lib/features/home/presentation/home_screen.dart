@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import 'home_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -14,7 +15,7 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF111318),
       body: homeDataAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => _buildLoadingState(context),
         error: (error, stack) => Center(
           child: Text(
             'Error: $error',
@@ -374,6 +375,56 @@ class HomeScreen extends ConsumerWidget {
           onTap: () => context.push('/player', extra: track),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          backgroundColor: const Color(0xFF111318).withOpacity(0.9),
+          floating: true,
+          pinned: true,
+          title: const Text(
+            'Home',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.all(24.0),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              // Quick Picks Skeleton
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(width: 150, height: 30, color: Colors.white10),
+                  Container(width: 60, height: 20, color: Colors.white10),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const HorizontalListSkeleton(),
+              const SizedBox(height: 32),
+
+              // Recently Added Skeleton
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(width: 200, height: 30, color: Colors.white10),
+                  Container(width: 60, height: 20, color: Colors.white10),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const SongListSkeleton(itemCount: 8),
+            ]),
+          ),
+        ),
+      ],
     );
   }
 }
