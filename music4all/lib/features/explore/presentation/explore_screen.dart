@@ -93,26 +93,7 @@ class ExploreScreen extends ConsumerWidget {
                                   label: mood,
                                   activeColor: _getMoodColor(mood),
                                   isSelected: state.selectedMood == mood,
-                                  onTap: () async {
-                                    await viewModel.selectMood(mood);
-                                    // Check if tracks were found
-                                    final updatedState = ref.read(
-                                      exploreProvider,
-                                    );
-                                    if (updatedState.selectedMood == mood &&
-                                        updatedState.moodTracks.isEmpty &&
-                                        !updatedState.isLoading) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'No tracks found for this mood. Try again!',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
+                                  onTap: () => viewModel.selectMood(mood),
                                 ),
                               );
                             }),

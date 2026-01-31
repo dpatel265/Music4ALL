@@ -41,28 +41,42 @@ class LyricsViewModel extends Notifier<LyricsState> {
 
   @override
   LyricsState build() {
-    // Listen to position updates to sync lyrics
+    // Listen to media item changes to load lyrics
+    final mediaItem = ref
+        .watch(audioHandlerProvider.select((s) => s.mediaItem))
+        .value;
+
+    // If track changed, load new lyrics
+    if (mediaItem != null &&
+        (state.lyrics.isEmpty || _lastLoadedTrackId != mediaItem.id)) {
+      _lastLoadedTrackId = mediaItem.id;
+      // Schedule load to avoid build-phase state updates
+      Future.microtask(
+        () => loadLyrics(
+          TrackModel(
+            id: mediaItem.id,
+            title: mediaItem.title,
+            artist: mediaItem.artist ?? 'Unknown',
+            thumbnailUrl: mediaItem.artUri.toString(),
+          ),
+        ),
+      );
+    }
+
     _listenToPosition();
     return LyricsState();
   }
 
+  String? _lastLoadedTrackId;
+
   void _listenToPosition() {
-    // We bind to the stream but we need to be careful about performance.
-    // Riverpod's ref.listen or stream provider might be better,
-    // but for now let's use a simple listener mechanism or just poll in UI?
-    // Actually, UI usually drives the sync in simple apps, but logic is better here.
-    // For simplicity sake, let's expose a method to update position or let UI watch stream.
-    // Better: let UI watch audio stream and find current index,
-    // BUT we want to avoid searching list every frame in UI.
-
-    // Let's rely on UI passing position updates or a StreamSubscription here.
-    // For "Agentic" simplicity, I will subscribe to the stream here if possible?
-    // 'ref' is valid.
-
     final positionStream = _audioHandler.positionStream;
-    positionStream.listen((position) {
+    // We strictly should clean this up, but as a singleton-like notifier it's okay-ish.
+    // Ideally use ref.listen on a provider wrapping the stream.
+    final sub = positionStream.listen((position) {
       _updateCurrentLine(position);
     });
+    ref.onDispose(sub.cancel);
   }
 
   void _updateCurrentLine(Duration position) {

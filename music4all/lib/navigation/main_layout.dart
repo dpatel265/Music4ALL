@@ -1,77 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'widgets/side_nav_bar.dart';
 import 'widgets/mini_player.dart';
+import '../features/player/presentation/player_expanded_provider.dart';
+import '../features/player/presentation/fullscreen_player.dart';
+import '../core/providers.dart';
+import '../features/search/domain/track_model.dart';
 
-class MainLayout extends StatelessWidget {
+class MainLayout extends ConsumerWidget {
   final Widget child;
 
   const MainLayout({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch expansion state
+    final isExpanded = ref.watch(playerExpandedProvider);
+    final screenSize = MediaQuery.of(context).size;
+    final bottomNavHeight = 80.0; // Approx height
+
+    // Get current track for Fullscreen Player
+    final mediaItem = ref.watch(audioHandlerProvider).mediaItem.value;
+
     return Scaffold(
       backgroundColor: const Color(0xFF111318),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Responsive Breakpoint
-          final bool isDesktop = constraints.maxWidth > 768;
-
-          return Column(
-            children: [
-              Expanded(
-                child: Row(
+      body: Stack(
+        children: [
+          // Layer 0: Main App Content (Column)
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final bool isDesktop = constraints.maxWidth > 768;
+                return Column(
                   children: [
-                    // Sidebar (Desktop only)
-                    if (isDesktop) const SideNavBar(),
-
-                    // Main Content
-                    Expanded(child: child),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          if (isDesktop) const SideNavBar(),
+                          Expanded(child: child),
+                        ],
+                      ),
+                    ),
+                    // Placeholder space for MiniPlayer (so content isn't covered)
+                    if (mediaItem != null) const SizedBox(height: 64),
+                    if (!isDesktop)
+                      _BottomNavBar(
+                        selectedIndex: _calculateSelectedIndex(context),
+                        onTap: (idx) => _onItemTapped(idx, context),
+                      ),
                   ],
-                ),
-              ),
+                );
+              },
+            ),
+          ),
 
-              // Mini Player (Persistent playback surface)
-              const MiniPlayer(),
+          // Layer 1: Mini Player
+          // Visible when NOT expanded and Track Exists
+          if (!isExpanded && mediaItem != null)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: screenSize.width > 768
+                  ? 0
+                  : kBottomNavigationBarHeight + 10,
+              child: const MiniPlayer(),
+            ),
 
-              // Bottom Navigation Bar (Mobile only)
-              // Note: The design had sidebar for desktop. For mobile, usually a BottomNav is used.
-              // The design `code.html` was desktop-first but showed mobile hidden classes.
-              // Let's implement a basic BottomNavigationBar for mobile if not desktop.
-              if (!isDesktop)
-                BottomNavigationBar(
-                  backgroundColor: const Color(0xFF111318),
-                  selectedItemColor: Colors.white,
-                  unselectedItemColor: const Color(0xFF9ca6ba),
-                  type: BottomNavigationBarType.fixed,
-                  currentIndex: _calculateSelectedIndex(context),
-                  onTap: (int idx) => _onItemTapped(idx, context),
-                  items: const [
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home),
-                      label: 'Home',
+          // Layer 2: Fullscreen Player
+          // Animated Positioned for slide-up effect
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.fastOutSlowIn,
+            top: isExpanded ? 0 : screenSize.height,
+            bottom: isExpanded ? 0 : -screenSize.height,
+            left: 0,
+            right: 0,
+            child: mediaItem != null
+                ? FullscreenPlayer(
+                    track: TrackModel(
+                      id: mediaItem.id,
+                      title: mediaItem.title,
+                      artist: mediaItem.artist ?? 'Unknown',
+                      thumbnailUrl: mediaItem.artUri.toString(),
                     ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.explore),
-                      label: 'Explore',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.search),
-                      label: 'Search',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.library_music),
-                      label: 'Library',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.person),
-                      label: 'Profile',
-                    ),
-                  ],
-                ),
-            ],
-          );
-        },
+                    onDismiss: () {
+                      ref
+                          .read(playerExpandedProvider.notifier)
+                          .setExpanded(false);
+                    },
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
@@ -103,5 +124,34 @@ class MainLayout extends StatelessWidget {
         context.go('/profile');
         break;
     }
+  }
+}
+
+class _BottomNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onTap;
+
+  const _BottomNavBar({required this.selectedIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      backgroundColor: const Color(0xFF111318),
+      selectedItemColor: Colors.white,
+      unselectedItemColor: const Color(0xFF9ca6ba),
+      type: BottomNavigationBarType.fixed,
+      currentIndex: selectedIndex,
+      onTap: onTap,
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+        BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.library_music),
+          label: 'Library',
+        ),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ],
+    );
   }
 }
