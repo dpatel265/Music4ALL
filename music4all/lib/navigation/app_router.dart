@@ -22,6 +22,8 @@ class AppRouter {
   static final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/', // Home is now the default
+    debugLogDiagnostics: true, // Enable GoRouter debug logging
+    observers: [_NavigationObserver()], // Add navigation observer
     routes: [
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -66,10 +68,21 @@ class AppRouter {
         path: '/player',
         parentNavigatorKey: _rootNavigatorKey,
         pageBuilder: (context, state) {
-          final track = state.extra as TrackModel?;
+          // Extra can be TrackModel directly or a Map with track and sourceLocation
+          TrackModel? track;
+          String? sourceLocation;
+
+          if (state.extra is TrackModel) {
+            track = state.extra as TrackModel;
+          } else if (state.extra is Map) {
+            final data = state.extra as Map;
+            track = data['track'] as TrackModel?;
+            sourceLocation = data['sourceLocation'] as String?;
+          }
+
           return MaterialPage(
             fullscreenDialog: true,
-            child: PlayerScreen(track: track),
+            child: PlayerScreen(track: track, sourceLocation: sourceLocation),
           );
         },
       ),
@@ -96,4 +109,39 @@ class AppRouter {
       ),
     ],
   );
+}
+
+/// Custom navigation observer for debugging
+class _NavigationObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    print('=== NAVIGATION: PUSH ===');
+    print('New route: ${route.settings.name}');
+    print('Previous route: ${previousRoute?.settings.name}');
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    print('=== NAVIGATION: POP ===');
+    print('Popped route: ${route.settings.name}');
+    print('New current route: ${previousRoute?.settings.name}');
+    super.didPop(route, previousRoute);
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    print('=== NAVIGATION: REMOVE ===');
+    print('Removed route: ${route.settings.name}');
+    print('Previous route: ${previousRoute?.settings.name}');
+    super.didRemove(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    print('=== NAVIGATION: REPLACE ===');
+    print('Old route: ${oldRoute?.settings.name}');
+    print('New route: ${newRoute?.settings.name}');
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+  }
 }

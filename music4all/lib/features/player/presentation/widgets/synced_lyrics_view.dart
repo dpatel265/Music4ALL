@@ -19,7 +19,7 @@ class _SyncedLyricsViewState extends ConsumerState<SyncedLyricsView> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-  bool _userIsScrolling = false;
+  final bool _userIsScrolling = false;
 
   @override
   Widget build(BuildContext context) {

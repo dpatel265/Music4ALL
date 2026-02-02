@@ -40,8 +40,9 @@ class LyricsParser {
       );
 
       String text = line.substring(match.end, nextStart).trim();
-      if (text.isNotEmpty)
+      if (text.isNotEmpty) {
         words.add(WordTiming(text: text, startTime: duration));
+      }
     }
 
     return words.isNotEmpty

@@ -231,7 +231,10 @@ class ExploreScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final track = items[index];
             return GestureDetector(
-              onTap: () => context.push('/player', extra: track),
+              onTap: () => context.push(
+                '/player',
+                extra: {'track': track, 'sourceLocation': '/explore'},
+              ),
               child: VideoCard(
                 title: track.title,
                 subtitle: track.artist,
@@ -339,7 +342,10 @@ class ExploreScreen extends ConsumerWidget {
           final index = entry.key;
           final track = entry.value;
           return GestureDetector(
-            onTap: () => context.push('/player', extra: track),
+            onTap: () => context.push(
+              '/player',
+              extra: {'track': track, 'sourceLocation': '/explore'},
+            ),
             child: ChartItem(
               rank: index + 1,
               change: 0,

@@ -15,11 +15,15 @@ import 'features/library/data/local_library_repository.dart';
 import 'features/library/domain/local_track_model.dart';
 
 void main() async {
+  print('🚀 MAIN STARTED');
   // Ensure binding is initialized first
   WidgetsFlutterBinding.ensureInitialized();
+  print('✅ WidgetsBinding initialized');
 
   // Safe initialization block
+  print('⏳ Starting initialization...');
   final initResult = await _safeInit();
+  print('✅ Initialization complete. Running app...');
 
   runApp(
     ProviderScope(
@@ -32,6 +36,7 @@ void main() async {
       child: const MusicApp(),
     ),
   );
+  print('🚀 runApp called');
 }
 
 class _InitResult {

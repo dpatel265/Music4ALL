@@ -16,8 +16,9 @@ import 'widgets/lyrics_sheet.dart';
 
 class PlayerScreen extends ConsumerStatefulWidget {
   final TrackModel? track; // Passed from navigation
+  final String? sourceLocation; // Where the user came from
 
-  const PlayerScreen({super.key, this.track});
+  const PlayerScreen({super.key, this.track, this.sourceLocation});
 
   @override
   ConsumerState<PlayerScreen> createState() => _PlayerScreenState();
@@ -58,7 +59,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            // Debug logs for navigation
+            print('=== PLAYER BACK BUTTON PRESSED ===');
+            print('Source location: ${widget.sourceLocation}');
+
+            // Always use explicit navigation to avoid GoRouter pop issues with ShellRoute
+            final destination = widget.sourceLocation ?? '/';
+            print('Navigating to: $destination');
+
+            context.go(destination);
+
+            print('=== NAVIGATION COMPLETE ===');
+          },
         ),
         actions: [
           IconButton(
@@ -118,172 +131,201 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                   final displayTrack = (state is PlayerPlaying)
                       ? state.track
                       : widget.track!;
-                  return Column(
-                    children: [
-                      const Spacer(),
-                      // Artwork
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              blurRadius: 24,
-                              offset: const Offset(0, 12),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            displayTrack.thumbnailUrl,
-                            width: MediaQuery.of(context).size.width - 48,
-                            height: MediaQuery.of(context).size.width - 48,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              width: 300,
-                              height: 300,
-                              color: Colors.grey[900],
-                              child: const Icon(
-                                Icons.music_note,
-                                size: 80,
-                                color: Colors.white24,
+                  // Use LayoutBuilder to calculate responsive artwork size
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Calculate artwork size based on available height
+                      // Leave space for other UI elements (approx 380px for controls, text, etc.)
+                      final availableHeight = constraints.maxHeight;
+                      final maxArtworkSize =
+                          MediaQuery.of(context).size.width - 48;
+                      final artworkSize = (availableHeight - 380).clamp(
+                        200.0,
+                        maxArtworkSize,
+                      );
+
+                      return SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SizedBox(height: 16),
+                              // Artwork
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.4),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 12),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    displayTrack.thumbnailUrl,
+                                    width: artworkSize,
+                                    height: artworkSize,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      width: artworkSize,
+                                      height: artworkSize,
+                                      color: Colors.grey[900],
+                                      child: const Icon(
+                                        Icons.music_note,
+                                        size: 80,
+                                        color: Colors.white24,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 24),
+
+                              // Title & Artist
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          displayTrack.title,
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          displayTrack.artist,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Consumer(
+                                    builder: (context, ref, child) {
+                                      final libraryState = ref.watch(
+                                        libraryViewModelProvider,
+                                      );
+                                      final isFavorite = libraryState.favorites
+                                          .any((t) => t.id == displayTrack.id);
+                                      return IconButton(
+                                        icon: Icon(
+                                          isFavorite
+                                              ? Icons.favorite
+                                              : Icons.favorite_border,
+                                          color: isFavorite
+                                              ? AppColors.error
+                                              : Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          ref
+                                              .read(
+                                                libraryViewModelProvider
+                                                    .notifier,
+                                              )
+                                              .toggleFavorite(displayTrack);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // Seek Bar
+                              _buildSeekBar(audioHandler),
+
+                              const SizedBox(height: 12),
+
+                              // Playback Controls
+                              _buildControls(audioHandler),
+
+                              const SizedBox(height: 20),
+
+                              // Volume Slider
+                              _buildVolumeSlider(),
+
+                              const SizedBox(height: 16),
+
+                              // Bottom Actions
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.lyrics_outlined,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (_) =>
+                                            LyricsSheet(track: displayTrack),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.queue_music,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (_) => const QueueScreen(),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.playlist_add,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        backgroundColor: Colors.transparent,
+                                        isScrollControlled: true,
+                                        builder: (context) =>
+                                            AddToPlaylistSheet(
+                                              trackId: displayTrack.id,
+                                            ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Title & Artist
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  displayTrack.title,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  displayTrack.artist,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final libraryState = ref.watch(
-                                libraryViewModelProvider,
-                              );
-                              final isFavorite = libraryState.favorites.any(
-                                (t) => t.id == displayTrack.id,
-                              );
-                              return IconButton(
-                                icon: Icon(
-                                  isFavorite
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: isFavorite
-                                      ? AppColors.error
-                                      : Colors.white,
-                                ),
-                                onPressed: () {
-                                  ref
-                                      .read(libraryViewModelProvider.notifier)
-                                      .toggleFavorite(displayTrack);
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Seek Bar
-                      _buildSeekBar(audioHandler),
-
-                      const SizedBox(height: 16),
-
-                      // Playback Controls
-                      _buildControls(audioHandler),
-
-                      const SizedBox(height: 24),
-
-                      // Volume Slider
-                      _buildVolumeSlider(),
-
-                      const Spacer(),
-
-                      // Bottom Actions
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.lyrics_outlined,
-                              color: Colors.white,
-                            ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (_) =>
-                                    LyricsSheet(track: displayTrack),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.queue_music,
-                              color: Colors.white,
-                            ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (_) => const QueueScreen(),
-                              );
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.playlist_add,
-                              color: Colors.white,
-                            ),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                backgroundColor: Colors.transparent,
-                                isScrollControlled: true,
-                                builder: (context) => AddToPlaylistSheet(
-                                  trackId: displayTrack.id,
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                      );
+                    },
                   );
                 }
                 return const SizedBox();

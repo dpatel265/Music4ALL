@@ -51,7 +51,13 @@ class AlbumDetailScreen extends ConsumerWidget {
           backgroundColor: const Color(0xFF111318),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.pop(),
+            onPressed: () {
+              if (Navigator.of(context).canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
           ),
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
@@ -238,7 +244,10 @@ class AlbumDetailScreen extends ConsumerWidget {
                 ),
                 onTap: () {
                   // TODO: Play from this track
-                  context.push('/player', extra: track);
+                  context.push(
+                    '/player',
+                    extra: {'track': track, 'sourceLocation': '/album'},
+                  );
                 },
               );
             }, childCount: tracks.length),

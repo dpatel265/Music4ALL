@@ -5,12 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:just_audio/just_audio.dart'; // For processing state if needed
-import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/audio_handler_service.dart';
 import '../../../core/providers.dart';
 import '../../search/domain/track_model.dart';
-import '../logic/player_view_model.dart';
+import 'player_expanded_provider.dart';
 import 'widgets/seek_bar.dart';
 import 'widgets/synced_lyrics_view.dart';
 
@@ -32,6 +30,7 @@ class _FullscreenPlayerState extends ConsumerState<FullscreenPlayer> {
   PaletteGenerator? _palette;
   Color _dominantColor = Colors.black;
   bool _showLyrics = false;
+  double _dragOffset = 0.0;
 
   @override
   void initState() {
@@ -65,18 +64,43 @@ class _FullscreenPlayerState extends ConsumerState<FullscreenPlayer> {
     }
   }
 
+  void _handleDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _dragOffset = (_dragOffset + details.delta.dy).clamp(
+        0.0,
+        double.infinity,
+      );
+    });
+  }
+
+  void _handleDragEnd(DragEndDetails details) {
+    if (_dragOffset > 150 || details.primaryVelocity! > 1000) {
+      widget.onDismiss();
+    } else {
+      setState(() {
+        _dragOffset = 0.0;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(playerExpandedProvider, (previous, next) {
+      if (next) {
+        setState(() {
+          _dragOffset = 0.0;
+        });
+      }
+    });
+
     final audioHandler = ref.watch(audioHandlerProvider);
     final screenSize = MediaQuery.of(context).size;
 
-    return Dismissible(
-      key: const Key('fullscreen_player_dismiss'),
-      direction: DismissDirection.down,
-      onDismissed: (_) => widget.onDismiss(),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Transform.translate(
+        offset: Offset(0, _dragOffset),
+        child: Stack(
           children: [
             // Layer 1: Dynamic Background (Glass Theme)
             Positioned.fill(
@@ -111,6 +135,8 @@ class _FullscreenPlayerState extends ConsumerState<FullscreenPlayer> {
                 children: [
                   // Top: Dismiss Chevron
                   GestureDetector(
+                    onVerticalDragUpdate: _handleDragUpdate,
+                    onVerticalDragEnd: _handleDragEnd,
                     onTap: widget.onDismiss,
                     child: Container(
                       height: 48,
@@ -274,7 +300,33 @@ class _FullscreenPlayerState extends ConsumerState<FullscreenPlayer> {
                               activeTrackColor: Colors.white,
                               inactiveTrackColor: Colors.white24,
                             ),
-                            child: Slider(value: 0.8, onChanged: (_) {}),
+                            child: StreamBuilder<double>(
+                              stream: audioHandler.volumeStream,
+                              initialData: audioHandler.currentVolume,
+                              builder: (context, snapshot) {
+                                final volume = snapshot.data ?? 1.0;
+                                debugPrint(
+                                  "PlayerUI: Volume Stream Update: $volume",
+                                );
+                                return Column(
+                                  children: [
+                                    Slider(
+                                      value: volume,
+                                      onChanged: (value) {
+                                        audioHandler.setVolume(value);
+                                      },
+                                    ),
+                                    Text(
+                                      "Vol: ${volume.toStringAsFixed(2)}",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
                           ),
                         ),
                         const Icon(Icons.volume_up, color: Colors.white70),

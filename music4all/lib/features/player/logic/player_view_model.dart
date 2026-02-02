@@ -37,7 +37,7 @@ class PlayerViewModel extends Notifier<PlayerState> {
   List<int> _effectiveIndices = [];
   int _currentIndex = 0;
   bool _isShuffleOn = false;
-  AudioServiceRepeatMode _repeatMode = AudioServiceRepeatMode.none;
+  final AudioServiceRepeatMode _repeatMode = AudioServiceRepeatMode.none;
 
   @override
   PlayerState build() {
@@ -121,8 +121,10 @@ class PlayerViewModel extends Notifier<PlayerState> {
   }
 
   Future<void> _playCurrent() async {
-    if (_effectiveIndices.isEmpty || _currentIndex >= _effectiveIndices.length)
+    if (_effectiveIndices.isEmpty ||
+        _currentIndex >= _effectiveIndices.length) {
       return;
+    }
 
     final actualIndex = _effectiveIndices[_currentIndex];
     final track = _originalQueue[actualIndex];

@@ -180,7 +180,13 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                       const Icon(Icons.drag_handle, color: Colors.white30),
                     ],
                   ),
-                  onTap: () => context.push('/player', extra: track),
+                  onTap: () => context.push(
+                    '/player',
+                    extra: {
+                      'track': track,
+                      'sourceLocation': '/playlist/${widget.playlistId}',
+                    },
+                  ),
                 );
               },
             ),

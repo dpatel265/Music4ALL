@@ -5,6 +5,8 @@ PODS:
   - audio_session (0.0.1):
     - Flutter
   - Flutter (1.0.0)
+  - flutter_volume_controller (0.0.1):
+    - Flutter
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -16,6 +18,7 @@ DEPENDENCIES:
   - audio_service (from `.symlinks/plugins/audio_service/darwin`)
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - Flutter (from `Flutter`)
+  - flutter_volume_controller (from `.symlinks/plugins/flutter_volume_controller/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
 
@@ -26,6 +29,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/audio_session/ios"
   Flutter:
     :path: Flutter
+  flutter_volume_controller:
+    :path: ".symlinks/plugins/flutter_volume_controller/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/darwin"
   sqflite_darwin:
@@ -35,6 +40,7 @@ SPEC CHECKSUMS:
   audio_service: aa99a6ba2ae7565996015322b0bb024e1d25c6fd
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_volume_controller: c2be490cb0487e8b88d0d9fc2b7e1c139a4ebccb
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
 

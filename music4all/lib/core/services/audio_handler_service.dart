@@ -1,3 +1,4 @@
+import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
@@ -8,11 +9,13 @@ import 'dart:async';
 class AudioHandlerService extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
   final _playlist = ConcatenatingAudioSource(children: []);
+  final _volumeController = StreamController<double>.broadcast();
 
   late final Future<void> _sessionFuture;
 
   AudioHandlerService() {
     _sessionFuture = _initAudioSession();
+    _initVolume();
 
     // Relay playback events from just_audio to audio_service
     _player.playbackEventStream.listen(_broadcastState);
@@ -33,6 +36,22 @@ class AudioHandlerService extends BaseAudioHandler with SeekHandler {
       final currentItem = sequenceState.currentSource?.tag as MediaItem?;
       if (currentItem != null) {
         mediaItem.add(currentItem);
+      }
+    });
+  }
+
+  void _initVolume() {
+    // Listen to system volume changes
+    FlutterVolumeController.addListener((volume) {
+      _currentVolume = volume;
+      _volumeController.add(volume);
+    });
+
+    // Get initial volume
+    FlutterVolumeController.getVolume().then((volume) {
+      if (volume != null) {
+        _currentVolume = volume;
+        _volumeController.add(volume);
       }
     });
   }
@@ -168,6 +187,14 @@ class AudioHandlerService extends BaseAudioHandler with SeekHandler {
 
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
+  Stream<double> get volumeStream => _volumeController.stream;
+  double get currentVolume => _currentVolume;
+  double _currentVolume = 1.0;
+
+  Future<void> setVolume(double volume) async {
+    _currentVolume = volume;
+    await FlutterVolumeController.setVolume(volume);
+  }
 
   /// Broadcasts the current state to the system (Notification/Lock Screen)
   void _broadcastState(PlaybackEvent event) {

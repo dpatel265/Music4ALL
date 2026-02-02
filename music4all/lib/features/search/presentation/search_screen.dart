@@ -176,7 +176,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               },
             ),
             onTap: () {
-              context.push('/player', extra: track);
+              context.push(
+                '/player',
+                extra: {'track': track, 'sourceLocation': '/search'},
+              );
             },
           );
         },

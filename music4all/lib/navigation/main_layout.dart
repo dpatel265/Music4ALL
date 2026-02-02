@@ -18,7 +18,9 @@ class MainLayout extends ConsumerWidget {
     // Watch expansion state
     final isExpanded = ref.watch(playerExpandedProvider);
     final screenSize = MediaQuery.of(context).size;
-    final bottomNavHeight = 80.0; // Approx height
+    // Calculate effective bottom nav height including safe area
+    final bottomNavHeight =
+        kBottomNavigationBarHeight + MediaQuery.of(context).padding.bottom;
 
     // Get current track for Fullscreen Player
     final mediaItem = ref.watch(audioHandlerProvider).mediaItem.value;
@@ -27,44 +29,40 @@ class MainLayout extends ConsumerWidget {
       backgroundColor: const Color(0xFF111318),
       body: Stack(
         children: [
-          // Layer 0: Main App Content (Column)
+          // Layer 0: Main App Content
           Positioned.fill(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final bool isDesktop = constraints.maxWidth > 768;
-                return Column(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          if (isDesktop) const SideNavBar(),
-                          Expanded(child: child),
-                        ],
-                      ),
-                    ),
-                    // Placeholder space for MiniPlayer (so content isn't covered)
-                    if (mediaItem != null) const SizedBox(height: 64),
-                    if (!isDesktop)
-                      _BottomNavBar(
-                        selectedIndex: _calculateSelectedIndex(context),
-                        onTap: (idx) => _onItemTapped(idx, context),
-                      ),
-                  ],
-                );
-              },
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: (mediaItem != null ? 64 : 0) + bottomNavHeight,
+              ),
+              child: Row(
+                children: [
+                  if (screenSize.width > 768) const SideNavBar(),
+                  Expanded(child: child),
+                ],
+              ),
             ),
           ),
 
           // Layer 1: Mini Player
-          // Visible when NOT expanded and Track Exists
           if (!isExpanded && mediaItem != null)
             Positioned(
               left: 0,
               right: 0,
-              bottom: screenSize.width > 768
-                  ? 0
-                  : kBottomNavigationBarHeight + 10,
+              bottom: bottomNavHeight,
               child: const MiniPlayer(),
+            ),
+
+          // Layer 2: Bottom Navigation Bar (Mobile Only)
+          if (screenSize.width <= 768)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _BottomNavBar(
+                selectedIndex: _calculateSelectedIndex(context),
+                onTap: (idx) => _onItemTapped(idx, context),
+              ),
             ),
 
           // Layer 2: Fullscreen Player
@@ -77,18 +75,23 @@ class MainLayout extends ConsumerWidget {
             left: 0,
             right: 0,
             child: mediaItem != null
-                ? FullscreenPlayer(
-                    track: TrackModel(
-                      id: mediaItem.id,
-                      title: mediaItem.title,
-                      artist: mediaItem.artist ?? 'Unknown',
-                      thumbnailUrl: mediaItem.artUri.toString(),
+                ? AnimatedOpacity(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.fastOutSlowIn,
+                    opacity: isExpanded ? 1.0 : 0.0,
+                    child: FullscreenPlayer(
+                      track: TrackModel(
+                        id: mediaItem.id,
+                        title: mediaItem.title,
+                        artist: mediaItem.artist ?? 'Unknown',
+                        thumbnailUrl: mediaItem.artUri.toString(),
+                      ),
+                      onDismiss: () {
+                        ref
+                            .read(playerExpandedProvider.notifier)
+                            .setExpanded(false);
+                      },
                     ),
-                    onDismiss: () {
-                      ref
-                          .read(playerExpandedProvider.notifier)
-                          .setExpanded(false);
-                    },
                   )
                 : const SizedBox.shrink(),
           ),

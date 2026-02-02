@@ -116,7 +116,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       subtitle: Text(subtitle, style: const TextStyle(color: Colors.grey)),
       value: value,
       onChanged: onChanged,
-      activeColor: AppColors.primary,
+      activeThumbColor: AppColors.primary,
       contentPadding: EdgeInsets.zero,
     );
   }

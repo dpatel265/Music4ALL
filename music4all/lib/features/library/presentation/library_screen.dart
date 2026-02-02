@@ -260,7 +260,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             style: const TextStyle(color: Colors.grey),
           ),
           onTap: () {
-            context.push('/player', extra: track);
+            context.push(
+              '/player',
+              extra: {'track': track, 'sourceLocation': '/library'},
+            );
           },
           trailing: isFavorite
               ? IconButton(

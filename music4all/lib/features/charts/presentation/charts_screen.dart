@@ -81,7 +81,10 @@ class ChartsScreen extends ConsumerWidget {
                     },
                   ),
                   onTap: () {
-                    context.push('/player', extra: track);
+                    context.push(
+                      '/player',
+                      extra: {'track': track, 'sourceLocation': '/charts'},
+                    );
                   },
                 );
               },
