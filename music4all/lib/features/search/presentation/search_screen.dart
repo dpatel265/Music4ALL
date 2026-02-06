@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
 import '../../playlists/presentation/widgets/track_options_sheet.dart';
+import '../../player/logic/player_view_model.dart';
+import '../../player/presentation/player_expanded_provider.dart';
 import 'search_view_model.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -176,10 +178,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               },
             ),
             onTap: () {
-              context.push(
-                '/player',
-                extra: {'track': track, 'sourceLocation': '/search'},
-              );
+              // Refactor: Use Persistent Player Overlay
+              ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+              ref.read(playerExpandedProvider.notifier).setExpanded(true);
             },
           );
         },

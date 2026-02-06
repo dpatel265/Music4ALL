@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../core/theme/app_colors.dart';
+import '../../player/logic/player_view_model.dart';
+import '../../player/presentation/player_expanded_provider.dart';
 import 'library_view_model.dart'; // Import ViewModel
 
 import '../../search/domain/track_model.dart';
@@ -260,10 +261,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             style: const TextStyle(color: Colors.grey),
           ),
           onTap: () {
-            context.push(
-              '/player',
-              extra: {'track': track, 'sourceLocation': '/library'},
-            );
+            ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+            ref.read(playerExpandedProvider.notifier).setExpanded(true);
           },
           trailing: isFavorite
               ? IconButton(

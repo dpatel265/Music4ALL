@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../playlists/domain/playlist_model.dart';
 import 'widgets/explore_widgets.dart';
+import '../../player/logic/player_view_model.dart';
+import '../../player/presentation/player_expanded_provider.dart';
 import 'explore_provider.dart';
 
 class ExploreScreen extends ConsumerWidget {
@@ -121,7 +123,7 @@ class ExploreScreen extends ConsumerWidget {
                                   child: CircularProgressIndicator(),
                                 ),
                               )
-                            : _buildGrid(state.moodTracks, context),
+                            : _buildGrid(state.moodTracks, context, ref),
                       ] else ...[
                         // New Music Videos Section
                         Row(
@@ -145,7 +147,11 @@ class ExploreScreen extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        _buildGrid(state.newMusic.take(8).toList(), context),
+                        _buildGrid(
+                          state.newMusic.take(8).toList(),
+                          context,
+                          ref,
+                        ),
 
                         const SizedBox(height: 32),
 
@@ -190,7 +196,7 @@ class ExploreScreen extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        _buildTopCharts(state.topCharts, context),
+                        _buildTopCharts(state.topCharts, context, ref),
                       ],
                     ],
                   ),
@@ -206,7 +212,7 @@ class ExploreScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGrid(List<dynamic> items, BuildContext context) {
+  Widget _buildGrid(List<dynamic> items, BuildContext context, WidgetRef ref) {
     return LayoutBuilder(
       builder: (context, constraints) {
         int crossAxisCount = 1;
@@ -231,10 +237,10 @@ class ExploreScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final track = items[index];
             return GestureDetector(
-              onTap: () => context.push(
-                '/player',
-                extra: {'track': track, 'sourceLocation': '/explore'},
-              ),
+              onTap: () {
+                ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+                ref.read(playerExpandedProvider.notifier).setExpanded(true);
+              },
               child: VideoCard(
                 title: track.title,
                 subtitle: track.artist,
@@ -330,7 +336,11 @@ class ExploreScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopCharts(List<dynamic> tracks, BuildContext context) {
+  Widget _buildTopCharts(
+    List<dynamic> tracks,
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF181b22),
@@ -342,10 +352,10 @@ class ExploreScreen extends ConsumerWidget {
           final index = entry.key;
           final track = entry.value;
           return GestureDetector(
-            onTap: () => context.push(
-              '/player',
-              extra: {'track': track, 'sourceLocation': '/explore'},
-            ),
+            onTap: () {
+              ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+              ref.read(playerExpandedProvider.notifier).setExpanded(true);
+            },
             child: ChartItem(
               rank: index + 1,
               change: 0,

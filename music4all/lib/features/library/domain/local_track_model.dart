@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'local_track_model.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 4)
 class LocalTrack extends HiveObject {
   @HiveField(0)
   final String id;

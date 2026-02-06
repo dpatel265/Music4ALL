@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+
 import 'charts_view_model.dart';
 import '../../search/domain/track_model.dart';
 import '../../player/logic/player_view_model.dart';
+import '../../player/presentation/player_expanded_provider.dart';
 
 class ChartsScreen extends ConsumerWidget {
   const ChartsScreen({super.key});
@@ -81,10 +82,13 @@ class ChartsScreen extends ConsumerWidget {
                     },
                   ),
                   onTap: () {
-                    context.push(
-                      '/player',
-                      extra: {'track': track, 'sourceLocation': '/charts'},
-                    );
+                    // Fix: Use persistent Overlay Player logic instead of navigating to separate route
+                    // 1. Play the track
+                    ref
+                        .read(playerViewModelProvider.notifier)
+                        .loadAndPlay(track);
+                    // 2. Expand the persistent player
+                    ref.read(playerExpandedProvider.notifier).setExpanded(true);
                   },
                 );
               },

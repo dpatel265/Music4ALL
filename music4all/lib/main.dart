@@ -13,6 +13,7 @@ import 'core/services/audio_handler_service.dart';
 import 'core/providers.dart';
 import 'features/library/data/local_library_repository.dart';
 import 'features/library/domain/local_track_model.dart';
+import 'features/player/logic/queue_manager.dart';
 
 void main() async {
   print('🚀 MAIN STARTED');
@@ -114,11 +115,14 @@ Future<_InitResult> _safeInit() async {
   );
 }
 
-class MusicApp extends StatelessWidget {
+class MusicApp extends ConsumerWidget {
   const MusicApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Keep QueueManager alive and monitoring
+    ref.watch(queueManagerProvider);
+
     return MaterialApp.router(
       title: 'Music4All',
       theme: ThemeData(

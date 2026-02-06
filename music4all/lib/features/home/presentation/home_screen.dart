@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
+import '../../player/logic/player_view_model.dart';
+import '../../player/presentation/player_expanded_provider.dart';
 import 'home_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -125,7 +127,11 @@ class HomeScreen extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         // Navigate to player with this track (playback will resume)
-        context.push('/player', extra: {'track': track, 'sourceLocation': '/'});
+        // Refactor: Use Persistent Player Overlay
+        // 1. Play
+        ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+        // 2. Expand
+        ref.read(playerExpandedProvider.notifier).setExpanded(true);
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -200,10 +206,10 @@ class HomeScreen extends ConsumerWidget {
         itemBuilder: (context, index) {
           final track = tracks[index];
           return GestureDetector(
-            onTap: () => context.push(
-              '/player',
-              extra: {'track': track, 'sourceLocation': '/'},
-            ),
+            onTap: () {
+              ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+              ref.read(playerExpandedProvider.notifier).setExpanded(true);
+            },
             child: Container(
               width: 160,
               margin: const EdgeInsets.only(right: 16),
@@ -375,10 +381,10 @@ class HomeScreen extends ConsumerWidget {
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onPressed: () {},
           ),
-          onTap: () => context.push(
-            '/player',
-            extra: {'track': track, 'sourceLocation': '/'},
-          ),
+          onTap: () {
+            ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+            ref.read(playerExpandedProvider.notifier).setExpanded(true);
+          },
         );
       }).toList(),
     );

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../playlists/domain/user_playlist_model.dart';
 import '../../../core/providers.dart';
 import '../../search/domain/track_model.dart';
+import '../../player/logic/player_view_model.dart';
+import '../../player/presentation/player_expanded_provider.dart';
 
 class PlaylistDetailScreen extends ConsumerStatefulWidget {
   final String playlistId;
@@ -180,13 +182,12 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                       const Icon(Icons.drag_handle, color: Colors.white30),
                     ],
                   ),
-                  onTap: () => context.push(
-                    '/player',
-                    extra: {
-                      'track': track,
-                      'sourceLocation': '/playlist/${widget.playlistId}',
-                    },
-                  ),
+                  onTap: () {
+                    ref
+                        .read(playerViewModelProvider.notifier)
+                        .loadAndPlay(track);
+                    ref.read(playerExpandedProvider.notifier).setExpanded(true);
+                  },
                 );
               },
             ),

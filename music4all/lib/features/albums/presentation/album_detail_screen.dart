@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../playlists/domain/playlist_model.dart';
+import '../../player/logic/player_view_model.dart';
+import '../../player/presentation/player_expanded_provider.dart';
 import 'album_provider.dart';
 
 class AlbumDetailScreen extends ConsumerWidget {
@@ -244,10 +246,9 @@ class AlbumDetailScreen extends ConsumerWidget {
                 ),
                 onTap: () {
                   // TODO: Play from this track
-                  context.push(
-                    '/player',
-                    extra: {'track': track, 'sourceLocation': '/album'},
-                  );
+                  // TODO: Play from this track
+                  ref.read(playerViewModelProvider.notifier).loadAndPlay(track);
+                  ref.read(playerExpandedProvider.notifier).setExpanded(true);
                 },
               );
             }, childCount: tracks.length),

@@ -7,6 +7,8 @@ import '../../../core/providers.dart';
 import 'package:flutter/foundation.dart';
 import '../../../core/services/audio_handler_service.dart';
 
+import 'queue_manager.dart';
+
 // States
 abstract class PlayerState {}
 
@@ -23,8 +25,8 @@ class PlayerError extends PlayerState {
   final String message;
   PlayerError(this.message);
 }
+// ... (imports)
 
-// Logic - migrated to Notifier for Riverpod 3.x
 // Logic - migrated to Notifier for Riverpod 3.x
 class PlayerViewModel extends Notifier<PlayerState> {
   YoutubeRepository get _repository => ref.read(youtubeRepositoryProvider);
@@ -41,6 +43,9 @@ class PlayerViewModel extends Notifier<PlayerState> {
 
   @override
   PlayerState build() {
+    // Keep QueueManager alive to handle auto-fetch
+    ref.watch(queueManagerProvider);
+
     _listenToAudioEvents();
     return PlayerInitial();
   }
@@ -121,12 +126,23 @@ class PlayerViewModel extends Notifier<PlayerState> {
   }
 
   Future<void> _playCurrent() async {
-    if (_effectiveIndices.isEmpty ||
-        _currentIndex >= _effectiveIndices.length) {
+    if (_effectiveIndices.isEmpty) {
       return;
     }
 
+    if (_currentIndex < 0 || _currentIndex >= _effectiveIndices.length) {
+      _currentIndex = 0;
+    }
+
+    // double check after adjustment
+    if (_effectiveIndices.isEmpty) return;
+
     final actualIndex = _effectiveIndices[_currentIndex];
+
+    if (actualIndex < 0 || actualIndex >= _originalQueue.length) {
+      return;
+    }
+
     final track = _originalQueue[actualIndex];
     state = PlayerLoading();
 
@@ -207,6 +223,47 @@ class PlayerViewModel extends Notifier<PlayerState> {
     await _audioHandler.setShuffleMode(
       _isShuffleOn ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
     );
+  }
+
+  Future<void> appendTrack(TrackModel track) async {
+    if (_originalQueue.any((t) => t.id == track.id)) return;
+
+    _originalQueue.add(track);
+
+    // Update indices
+    final newIndex = _originalQueue.length - 1;
+    if (_isShuffleOn) {
+      // If shuffle is on, we can insert it at a random position AFTER current index,
+      // or just append to end of effective list.
+      // For simplicity in endless mode, we usually want it to be 'next' or 'soon'.
+      // Appending to end of effectiveIndices ensures it plays eventually.
+      _effectiveIndices.add(newIndex);
+      // Optionally swap with next item to ensure it plays next?
+      // If we strictly want "Gapless playback of THIS song", we might want it next.
+      // But _effectiveIndices logic in _fetchRelatedAndAppend just appended.
+    } else {
+      _effectiveIndices.add(newIndex);
+    }
+
+    // Sync with AudioHandler
+    // We need to add it to the actual audio player too
+    String streamUrl;
+    if (track.audioUrl != null && track.audioUrl!.isNotEmpty) {
+      streamUrl = track.audioUrl!;
+    } else {
+      streamUrl = await _repository.getAudioStreamUrl(track.id);
+    }
+
+    final mediaItem = MediaItem(
+      id: track.id,
+      album: "Music4All",
+      title: track.title,
+      artist: track.artist,
+      artUri: Uri.parse(track.thumbnailUrl),
+      duration: null,
+    );
+
+    await _audioHandler.addToQueue(mediaItem, streamUrl);
   }
 
   Future<void> _fetchRelatedAndAppend() async {

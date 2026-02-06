@@ -8,7 +8,7 @@ part of 'local_track_model.dart';
 
 class LocalTrackAdapter extends TypeAdapter<LocalTrack> {
   @override
-  final int typeId = 1;
+  final int typeId = 4;
 
   @override
   LocalTrack read(BinaryReader reader) {
