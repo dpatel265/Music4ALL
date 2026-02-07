@@ -54,6 +54,12 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Music4all needs to access your local network to connect to the music server.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+	</array>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>Music4All needs access to your music library to import songs.</string>
 </dict>

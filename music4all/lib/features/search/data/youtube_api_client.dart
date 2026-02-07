@@ -1,120 +1,61 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class YoutubeApiClient {
   final Dio _dio;
-  final String _baseUrl = 'https://www.googleapis.com/youtube/v3';
+  // Android Emulator: 10.0.2.2
+  // iOS Simulator: 127.0.0.1
+  // Physicall Device: Use your Machine's Local IP (e.g. 192.168.1.X)
+  // For Release/Production, this should be an Environmental Variable
+  final String _baseUrl = 'http://192.168.1.97:8000';
 
   YoutubeApiClient({Dio? dio}) : _dio = dio ?? Dio();
 
+  /// Searches for tracks using the Python Backend (YTMusic)
   Future<List<dynamic>> searchVideos(String query) async {
-    final apiKey = dotenv.env['GOOGLE_API_KEY'];
-    if (apiKey == null) throw Exception('API Key not found');
-
     try {
       final response = await _dio.get(
         '$_baseUrl/search',
-        queryParameters: {
-          'part': 'snippet',
-          'type': 'video',
-          'videoCategoryId': '10', // Music category
-          'q': query,
-          'maxResults': 20,
-          'key': apiKey,
-        },
+        queryParameters: {'query': query, 'filter': 'songs'},
       );
 
       if (response.statusCode == 200) {
-        return response.data['items'];
+        return response.data;
       } else {
         throw Exception('Failed to load videos: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Network Error: $e');
+      throw Exception('Backend Network Error: $e');
     }
   }
+
+  /// Fetches lyrics from Python Backend
+  Future<String?> getLyrics(String videoId) async {
+    try {
+      final response = await _dio.get('$_baseUrl/lyrics/$videoId');
+      if (response.statusCode == 200) {
+        return response.data['lyrics'];
+      }
+      return null;
+    } catch (e) {
+      // It's okay if lyrics fail
+      return null;
+    }
+  }
+
+  // --- Legacy / Unused Methods (Kept empty or throw to ensure they aren't used incorrectly) ---
 
   Future<List<dynamic>> getPopularVideos({String regionCode = 'US'}) async {
-    final apiKey = dotenv.env['GOOGLE_API_KEY'];
-    if (apiKey == null) throw Exception('API Key not found');
-
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/videos',
-        queryParameters: {
-          'part': 'snippet',
-          'chart': 'mostPopular',
-          'videoCategoryId': '10', // Music
-          'regionCode': regionCode,
-          'maxResults': 50,
-          'key': apiKey,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        return response.data['items'];
-      } else {
-        throw Exception(
-          'Failed to load popular videos: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      throw Exception('Network Error: $e');
-    }
+    // TODO: Implement get_charts endpoint in Python if needed
+    return [];
   }
 
-  /// Fetches playlists/albums
   Future<List<dynamic>> searchPlaylists(String query) async {
-    final apiKey = dotenv.env['GOOGLE_API_KEY'];
-    if (apiKey == null) throw Exception('API Key not found');
-
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/search',
-        queryParameters: {
-          'part': 'snippet',
-          'type': 'playlist',
-          'q': query,
-          'maxResults': 10,
-          'key': apiKey,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        return response.data['items'];
-      } else {
-        throw Exception('Failed to load playlists: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Network Error: $e');
-    }
+    // TODO: Implement search_playlists endpoint in Python if needed
+    return [];
   }
 
-  /// Fetches tracks from a playlist/album
   Future<List<dynamic>> getPlaylistItems(String playlistId) async {
-    final apiKey = dotenv.env['GOOGLE_API_KEY'];
-    if (apiKey == null) throw Exception('API Key not found');
-
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/playlistItems',
-        queryParameters: {
-          'part': 'snippet,contentDetails',
-          'playlistId': playlistId,
-          'maxResults': 50,
-          'key': apiKey,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        return response.data['items'];
-      } else {
-        throw Exception(
-          'Failed to load playlist items: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      throw Exception('Network Error: $e');
-    }
+    // TODO: Implement get_playlist endpoint in Python if needed
+    return [];
   }
 }
