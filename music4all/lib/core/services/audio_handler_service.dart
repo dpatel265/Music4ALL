@@ -5,11 +5,14 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 
+enum AudioAction { next, previous }
+
 /// The central audio handler that manages playback and system controls (lock screen, notification).
 class AudioHandlerService extends BaseAudioHandler with SeekHandler {
   final _player = AudioPlayer();
   final _playlist = ConcatenatingAudioSource(children: []);
   final _volumeController = StreamController<double>.broadcast();
+  final _actionController = StreamController<AudioAction>.broadcast();
 
   late final Future<void> _sessionFuture;
 
@@ -120,11 +123,15 @@ class AudioHandlerService extends BaseAudioHandler with SeekHandler {
 
   /// Skips to the next item in the queue.
   @override
-  Future<void> skipToNext() => _player.seekToNext();
+  Future<void> skipToNext() async {
+    _actionController.add(AudioAction.next);
+  }
 
   /// Skips to the previous item in the queue.
   @override
-  Future<void> skipToPrevious() => _player.seekToPrevious();
+  Future<void> skipToPrevious() async {
+    _actionController.add(AudioAction.previous);
+  }
 
   /// Jumps to a specific item in the queue.
   @override
@@ -188,6 +195,7 @@ class AudioHandlerService extends BaseAudioHandler with SeekHandler {
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
   Stream<double> get volumeStream => _volumeController.stream;
+  Stream<AudioAction> get actionStream => _actionController.stream;
   double get currentVolume => _currentVolume;
   double _currentVolume = 1.0;
 

@@ -64,9 +64,14 @@ class PlayerViewModel extends Notifier<PlayerState> {
       }
     });
 
-    // TODO: Listen for 'next' 'previous' commands from Lock Screen if exposed by AudioHandler
-    // Currently relying on generic skips via AudioHandler which might need wiring back here.
-    // For now, we assume this Provider drives the AudioHandler.
+    // Listen for 'next' 'previous' commands from Lock Screen
+    _audioHandler.actionStream.listen((action) {
+      if (action == AudioAction.next) {
+        skipToNext();
+      } else if (action == AudioAction.previous) {
+        skipToPrevious();
+      }
+    });
   }
 
   // --- Queue Management ---

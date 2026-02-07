@@ -91,7 +91,13 @@ Settings Modal:
 └── About & Privacy
 ```
 
+
 ---
+
+> [!IMPORTANT]
+> **Functional Constraints (Design Handoff)**
+> This visual guide MUST be used in conjunction with the **[NRD Plan (Functional Spec)](file:///Users/deepprachi/.gemini/antigravity/brain/abb70615-7e07-4602-b136-3c6d90ab6cf6/NRD_Plan.md)**.
+> While the UI/UX can be redesigned, the **Navigation Structure** (ShellRoute) and **State Management logic** (Riverpod) are architectural hard constraints.
 
 ## 2. Screen Layout Specifications
 
@@ -133,7 +139,9 @@ Settings Modal:
 └─────────────────────────────────────┘
 ```
 
-### FULL PLAYER SCREEN
+### FULL PLAYER SCREEN (Persistent Overlay)
+*Note: This is NOT a separate page. It is a persistent layer that slides up/down over the main content.*
+
 ```
 ┌─────────────────────────────────────┐
 │ ⋲ "Now Playing" ⋯                   │

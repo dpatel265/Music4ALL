@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
 import '../features/search/data/youtube_api_client.dart';
 import '../features/search/data/youtube_repository.dart';
@@ -15,6 +16,10 @@ final dioProvider = Provider<Dio>((ref) {
 
 final audioHandlerProvider = Provider<AudioHandlerService>((ref) {
   return AudioHandlerService();
+});
+
+final currentMediaItemProvider = StreamProvider<MediaItem?>((ref) {
+  return ref.watch(audioHandlerProvider).mediaItem;
 });
 
 /// Provides the StorageService singleton

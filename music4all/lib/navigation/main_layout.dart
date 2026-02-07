@@ -23,7 +23,8 @@ class MainLayout extends ConsumerWidget {
         kBottomNavigationBarHeight + MediaQuery.of(context).padding.bottom;
 
     // Get current track for Fullscreen Player
-    final mediaItem = ref.watch(audioHandlerProvider).mediaItem.value;
+    final mediaItemAsync = ref.watch(currentMediaItemProvider);
+    final mediaItem = mediaItemAsync.value;
 
     return Scaffold(
       backgroundColor: const Color(0xFF111318),
